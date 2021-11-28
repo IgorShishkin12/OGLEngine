@@ -115,7 +115,7 @@ int main()
 			vec[0].r = 0.7;
 			vec[0].g = 0.3;
 			vec[0].b = 0;
-			vec[0].radius=150;
+			vec[0].radius=150;//testcommit
 	}
 	//cout << setprecision(50);
 	//cout << vec[0].radius;
