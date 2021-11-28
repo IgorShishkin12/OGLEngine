@@ -98,10 +98,9 @@ int main()
 	//glEnableVertexAttribArray(2);
 
 	float moveCrd[3]{ 0.0,0.0,0.0 };
-	int ID_coords = glGetUniformLocation(ourShader.getID(), "me");
+	int ID_coords = glGetUniformLocation(ourShader.getID(), "me1");
 	std::array <float, 4> mice2{ 0,1,0,1 };
 	int ID_mice = glGetUniformLocation(ourShader.getID(), "mouse");
-
 
 	unsigned int ID_texDataSph;
 	glGenTextures(1, &ID_texDataSph);
@@ -111,21 +110,24 @@ int main()
 		vec.resize(1);
 			vec[0].x = 10;
 			vec[0].y = 10;
-			vec[0].z = 10;
+			vec[0].z = 1000;
 			vec[0].r = 0.7;
 			vec[0].g = 0.3;
 			vec[0].b = 0;
-			vec[0].radius=150;//testcommit
+			vec[0].a = 1;
+			vec[0].radius=150;
 	}
 	//cout << setprecision(50);
 	//cout << vec[0].radius;
 	vector <std::array<float, 8>> toTex;
 	toTex.push_back(vec[0].getArr());
-	int testarr[]{ 1,2,3,4,5,6,7,8 };
 	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);//см ниже
 	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);//пиксель на всей области одного цвета
-	glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA32F, 2 , 1, 0, GL_RGBA,GL_FLOAT,&toTex[0][0]);                  //TODO*********
-
+	glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA32F, 2 , 1, 0, GL_RGBA,GL_FLOAT,&toTex[0][0]);                  //gl_rgba32f ненормализует
+	//все о тексстурах: обычно цвета нормализуются, в gl_rgba32f не нормализуются
+	// параметры:https://www.khronos.org/registry/OpenGL-Refpages/gl4/html/glTexImage2D.xhtml
+	//  texelFetch позволяет передавать в аргументах значения как для массива
+	// 
 	// Цикл рендеринга
 	while (!glfwWindowShouldClose(window))
 	{
@@ -148,6 +150,7 @@ int main()
 		if (isMove(window, moveCrd))
 		{
 			glUniform3f(ID_coords, moveCrd[0], moveCrd[1], moveCrd[2]);
+			cout << "tt";
 		}
 		// glfw: обмен содержимым front- и back- буферов. Отслеживание событий ввода/вывода (была ли нажата/отпущена кнопка, перемещен курсор мыши и т.п.)
 		glfwSwapBuffers(window);
