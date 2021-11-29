@@ -7,6 +7,7 @@ precision mediump float;
 vec2 u_resolution=vec2(600.0,800.0);
 uniform vec3 me1;
 uniform vec4 mouse;
+uniform ivec2 sizeSph;
 uniform sampler2D Spheres;//{radius, x, y, z, r, g, b,0};
 
 bool isSphereIntersect( in vec3 rayOrigin, in vec3 rayDirection, in vec3 center, in float radius, out float distance1,out float distance2 )
@@ -21,6 +22,7 @@ bool isSphereIntersect( in vec3 rayOrigin, in vec3 rayDirection, in vec3 center,
 	distance2 = -b + h;
 	if(distance1==0.0||distance2==0.0) return false;
 	return true;
+
 }
  
 vec3 sphN(vec3 sphCen,vec3 me,vec3 rayDirection,float distance)
@@ -47,28 +49,38 @@ void getPosition(out vec3 me,out vec3 lookTo)
 bool getSphClr(in vec3 me,in vec3 lookTo,out float len,out vec4 color)
 {
 	vec4 sphs1,sphs2;
-	sphs1 = texelFetch(Spheres,ivec2(0,0),0);
-	sphs2 = texelFetch(Spheres,ivec2(1,0),0);
-
-	float distan1;
-	float distan2;
-
-	vec3 sphCen = sphs1.yzw;
-	float radiusSph = sphs1.x;
-	if(!isSphereIntersect(me,lookTo,sphCen,radiusSph,distan1,distan2))
+	float distan1,distan2,radiusSph,lenNow = 1000000000000000000000.0;
+	len = lenNow;
+	vec3 sphCen;
+	int iNow = 0;
+	int size = sizeSph.x*sizeSph.y;
+	if(size==0) return false;
+	for (int i = 0;i<size;i=i+2)
 	{
-		len = 1000000000000000000000.0;
-		return false;
+		sphCen = sphs1.yzw;
+		radiusSph = sphs1.x;
+		sphs1 = texelFetch(Spheres,ivec2(i,0),0);
+		sphs2 = texelFetch(Spheres,ivec2(i+1,0),0);
+		if(!isSphereIntersect(me,lookTo,sphCen,radiusSph,distan1,distan2))
+		{
+			continue;
+		}
+		else if(distan1<0||distan2<0)
+		{
+			lenNow=max(distan1,distan2);
+		}
+		else
+		{
+			lenNow = min(distan1,distan2);
+		}
+		if(lenNow < len)
+		{
+			len = lenNow;
+			iNow = i;
+		}
 	}
-	else if(distan1<0||distan2<0)
-	{
-		len=max(distan1,distan2);
-	}
-	else
-	{
-		len = min(distan1,distan2);
-	}
-	color = vec4(normalize(sphs2.rgb),sphs2.a);
+	if (len>10000000.0) return false;
+	color = normalize(vec4(texelFetch(Spheres,ivec2(iNow+1,0),0).xyz,1.0));
 	return true;
 }
 

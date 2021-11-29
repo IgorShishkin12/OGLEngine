@@ -102,33 +102,38 @@ int main()
 	std::array <float, 4> mice2{ 0,1,0,1 };
 	int ID_mice = glGetUniformLocation(ourShader.getID(), "mouse");
 
+	int ID_sizeSph = glGetUniformLocation(ourShader.getID(), "sizeSph");
+
 	unsigned int ID_texDataSph;
 	glGenTextures(1, &ID_texDataSph);
 	glBindTexture(GL_TEXTURE_2D, ID_texDataSph);
+	constexpr int sizex = 8, sizey = 1;
+	glUniform2i(ID_sizeSph, sizex, sizey);
 	vector<Sphere> vec;
 	{
-		vec.resize(1);
-			vec[0].x = 10;
-			vec[0].y = 10;
-			vec[0].z = 1000;
-			vec[0].r = 0.7;
-			vec[0].g = 0.3;
-			vec[0].b = 0;
-			vec[0].a = 1;
-			vec[0].radius=150;
+		vec.resize(sizex*sizey/2);//float radius=1, float x=0, float y=0, float z=0, float r=0, float g=0, float b=0, float a=1
+
+			vec[0] = Sphere{ 100,14,100,39,0,3,8,1 };
+			vec[1] = Sphere{ 50,14,100,39,9,3,2,1 };
+			vec[2] = Sphere{ 10,14,-100,200,0,3,2,1 };
+			vec[3] = Sphere{ 45,-14,10,309,3,3,3,1 };
 	}
 	//cout << setprecision(50);
 	//cout << vec[0].radius;
 	vector <std::array<float, 8>> toTex;
-	toTex.push_back(vec[0].getArr());
+	for (int i = 0; i < sizex * sizey/2; ++i)
+	{
+		toTex.push_back(vec[i].getArr());
+	}
 	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);//см ниже
 	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);//пиксель на всей области одного цвета
-	glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA32F, 2 , 1, 0, GL_RGBA,GL_FLOAT,&toTex[0][0]);                  //gl_rgba32f ненормализует
+	glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA32F, sizex , sizey, 0, GL_RGBA,GL_FLOAT,&toTex[0][0]);                  //gl_rgba32f ненормализует
 	//все о тексстурах: обычно цвета нормализуются, в gl_rgba32f не нормализуются
 	// параметры:https://www.khronos.org/registry/OpenGL-Refpages/gl4/html/glTexImage2D.xhtml
 	//  texelFetch позволяет передавать в аргументах значения как для массива
 	// 
 	// Цикл рендеринга
+
 	while (!glfwWindowShouldClose(window))
 	{
 		// Обработка ввода
@@ -146,6 +151,7 @@ int main()
 		mice2 = mouse();
 			//std::cout << mice2[0][0]<< "\t" << mice2[0][1]<< "\t" << mice2[1][0]<<"\t" << mice2[1][1]<< "\t" << 0.00005<<std::endl;
 		glUniform4f(ID_mice, mice2[0], mice2[1], mice2[2], mice2[3]);
+		glUniform2i(ID_sizeSph, sizex, sizey);
 
 		if (isMove(window, moveCrd))
 		{
