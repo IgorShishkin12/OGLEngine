@@ -201,6 +201,43 @@ std::array<float, 4> mouse()
 }
 
 
+array <float, 6> camera()
+{
+	static bool flag1385{ 1 };
+	static VectorF position(3), px(3), py(3), pz(3);
+	if(flag1385)
+	{
+		position.get(1) = 0;
+		position.get(2) = 0;
+		position.get(3) = 0;
+		px = position;
+		py = position;
+		pz = position;
+		px.get(1) = 1;
+		py.get(2) = 1;
+		pz.get(3) = 1;
+		flag1385 = 0;
+	}
+
+	static std::array<float, 2> arr{ 0,0 };
+	POINT p;
+	static POINT pPast{ 0,0 };
+	if (GetCursorPos(&p))
+	{
+		if (p.x != pPast.x || p.y != pPast.y)
+		{
+			POINT difference{ p.x - pPast.x,p.y - pPast.y };
+			MatrixF tmx = changeRMx3('x', difference.x / 100.0);
+			MatrixF tme =px* tmx;
+			px = tme;
+
+			pPast.x = p.x;
+			pPast.y = p.y;
+		}
+	}
+
+}
+
 // glfw: всякий раз, когда изменяются размеры окна (пользователем или операционной системой), вызывается данная callback-функция
 void framebuffer_size_callback(GLFWwindow* window, int width, int height)
 {

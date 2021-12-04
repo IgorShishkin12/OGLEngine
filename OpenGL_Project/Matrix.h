@@ -195,6 +195,7 @@ public:
     }
     float& get(unsigned long num)
     {
+        --num;
         return mx.get((type == 'v') ? num : 1, (type == 'v') ? 1 : num);
     }
     void normalize()
@@ -205,7 +206,33 @@ public:
             this->getIF(i) /= len;
         }
     }
-
+    VectorF operator=(const VectorF &in)
+    {
+        this->mx = in.mx;
+        this->len = in.len;
+        this->sizeO = in.sizeO;
+        if (this->type != in.type)
+        {
+            cerr << "typerr -> vectorF ";
+        }
+    }
+    VectorF operator=(MatrixF& in)
+    {
+        if (this->type == 'v')
+        {
+            for (int i = 0; i < this->sizeO; ++i)
+            {
+                this->mx.getIF(i, 0)=in.getIF(i,0);
+            }
+        }
+        else
+        {
+            for (int i = 0; i < this->sizeO; ++i)
+            {
+                this->mx.getIF(0, i) = in.getIF(0, i);
+            }
+        }
+    }
     friend MatrixF operator*(const VectorF& v1, const MatrixF& m1);
     friend MatrixF operator*(const MatrixF& m1, const VectorF& v1);
 };
