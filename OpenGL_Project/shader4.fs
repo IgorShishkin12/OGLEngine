@@ -46,7 +46,7 @@ void getPosition(out vec3 me,out vec3 lookTo)
 	)*lookTo;
 }
 
-bool getSphClr(in vec3 me,in vec3 lookTo,out float len,out vec4 color)
+bool getSphClr(in vec3 me,in vec3 lookTo, out float len, out vec4 color,out vec3 normal)
 {
 	vec4 sphs1,sphs2;
 	float distan1,distan2,radiusSph,lenNow = 1000000000000000000000.0;
@@ -57,10 +57,10 @@ bool getSphClr(in vec3 me,in vec3 lookTo,out float len,out vec4 color)
 	if(size==0) return false;
 	for (int i = 0;i<size;i=i+2)
 	{
-		sphCen = sphs1.yzw;
-		radiusSph = sphs1.x;
 		sphs1 = texelFetch(Spheres,ivec2(i,0),0);
 		sphs2 = texelFetch(Spheres,ivec2(i+1,0),0);
+		sphCen = sphs1.yzw;
+		radiusSph = sphs1.x;
 		if(!isSphereIntersect(me,lookTo,sphCen,radiusSph,distan1,distan2))
 		{
 			continue;
@@ -81,16 +81,45 @@ bool getSphClr(in vec3 me,in vec3 lookTo,out float len,out vec4 color)
 	}
 	if (len>10000000.0) return false;
 	color = normalize(vec4(texelFetch(Spheres,ivec2(iNow+1,0),0).xyz,1.0));
+	normal = sphN(texelFetch(Spheres,ivec2(iNow,0),0).yzw,me,lookTo,len);
 	return true;
 }
+bool RTX(in vec3 me,in vec3 lookTo,  out vec4 color)
+{
+	vec4 colors[4];
+	float lengs[4];
+	vec3 norm;
+	int j = 0;
+	for(int i = 0;i<4;++i)
+	{
+	if(getSphClr(me,lookTo,lengs[i],colors[i],norm))
+	{
+	j++;
+	me = me+lookTo*lengs[i];
+	lookTo = reflect(lookTo,norm);
+	}
+	else{
+		break;
+	}
+	}
 
+	color = vec4(1,1,1,1)/2;
+	for (int i = j-1;i>-1;--i)
+	{
+	color=(color+colors[i])*(1.0-lengs[i]/10000)+vec4(1,1,1,1)*lengs[i]/10000;
+	color = vec4(normalize(color.xyz),1);
+	}
+	return j!=0;
+
+}
 void main()
 {
 vec3 me,ecran;
 vec4 clr;
 float len;
+vec3 normal;
 getPosition(me,ecran);
-if(getSphClr(me,ecran,len,clr))
+if(RTX(me,ecran,clr))
 {
 	gl_FragColor = clr;
 }

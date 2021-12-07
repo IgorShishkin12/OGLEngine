@@ -74,7 +74,7 @@ public:
         return (vec[h][w]);
     }
 
-    MatrixF& operator=(const MatrixF& m1)
+    void operator=(const MatrixF& m1)
     {
         unsigned long sizeh = m1.m_height;
         unsigned long sizew = m1.m_width;
@@ -206,7 +206,7 @@ public:
             this->getIF(i) /= len;
         }
     }
-    VectorF operator=(const VectorF &in)
+    void operator=(const VectorF &in)
     {
         this->mx = in.mx;
         this->len = in.len;
@@ -216,7 +216,7 @@ public:
             cerr << "typerr -> vectorF ";
         }
     }
-    VectorF operator=(MatrixF& in)
+    void operator=(MatrixF& in)
     {
         if (this->type == 'v')
         {
