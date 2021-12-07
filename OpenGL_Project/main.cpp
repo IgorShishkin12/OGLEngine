@@ -20,6 +20,7 @@ void framebuffer_size_callback(GLFWwindow* window, int width, int height);
 void processInput(GLFWwindow* window);
 bool isMove(GLFWwindow* window, float* arr);
 std::array<float, 4> mouse();
+array <float, 7> camera(GLFWwindow* window);
 // Константы
 const unsigned int SCR_WIDTH = 800;
 const unsigned int SCR_HEIGHT = 600;
@@ -99,7 +100,7 @@ int main()
 
 	float moveCrd[3]{ 0.0,0.0,0.0 };
 	int ID_coords = glGetUniformLocation(ourShader.getID(), "me1");
-	std::array <float, 4> mice2{ 0,1,0,1 };
+	std::array <float, 7> mice2{ 0,0,0,0,1,0,1 };
 	int ID_mice = glGetUniformLocation(ourShader.getID(), "mouse");
 
 	int ID_sizeSph = glGetUniformLocation(ourShader.getID(), "sizeSph");
@@ -148,16 +149,12 @@ int main()
 		ourShader.use();
 		glBindVertexArray(VAO);
 		glDrawElements(GL_TRIANGLES, 6, GL_UNSIGNED_INT, 0);
-		mice2 = mouse();
+		mice2 = camera(window);
 			//std::cout << mice2[0][0]<< "\t" << mice2[0][1]<< "\t" << mice2[1][0]<<"\t" << mice2[1][1]<< "\t" << 0.00005<<std::endl;
-		glUniform4f(ID_mice, mice2[0], mice2[1], mice2[2], mice2[3]);
+		glUniform4f(ID_mice, mice2[3], mice2[4], mice2[5], mice2[6]);
+		glUniform3f(ID_coords, mice2[0], mice2[1], mice2[2]);
 		glUniform2i(ID_sizeSph, sizex, sizey);
 
-		if (isMove(window, moveCrd))
-		{
-			glUniform3f(ID_coords, moveCrd[0], moveCrd[1], moveCrd[2]);
-			cout << "tt";
-		}
 		// glfw: обмен содержимым front- и back- буферов. Отслеживание событий ввода/вывода (была ли нажата/отпущена кнопка, перемещен курсор мыши и т.п.)
 		glfwSwapBuffers(window);
 		glfwPollEvents();
@@ -201,10 +198,10 @@ std::array<float, 4> mouse()
 }
 
 
-array <float, 6> camera()
+array <float, 7> camera(GLFWwindow *window)
 {
 	static bool flag1385{ 1 };
-	static VectorF position(3), px(3), py(3), pz(3);
+	static VectorF position{ 3 }, px{ 3 }, py{ 3 }, pz{ 3 };
 	if(flag1385)
 	{
 		position.get(1) = 0;
@@ -222,19 +219,40 @@ array <float, 6> camera()
 	static std::array<float, 2> arr{ 0,0 };
 	POINT p;
 	static POINT pPast{ 0,0 };
+	static pair<float,float> pPast1{ 0,0 };
 	if (GetCursorPos(&p))
 	{
 		if (p.x != pPast.x || p.y != pPast.y)
 		{
 			POINT difference{ p.x - pPast.x,p.y - pPast.y };
-			MatrixF tmx = changeRMx3('x', difference.x / 100.0);
-			MatrixF tme =px* tmx;
+			MatrixF mx1 = changeRMx3('x', difference.x / 100.0);
+			MatrixF tmx = changeRMx3('y',difference.y/100.0);
+			tmx = tmx * mx1;
+			MatrixF tme = px * tmx;
 			px = tme;
+			tme = py * tmx;
+			py = tme;
+			tme = pz * tmx;
+			pz = tme;
 
 			pPast.x = p.x;
 			pPast.y = p.y;
+			pPast1.first += p.x/100.0;
+			pPast1.second += p.y/100.0;
 		}
 	}
+	static float oim[3];
+	oim[0] = 0;
+	oim[1] = 0;
+	oim[3] = 0;
+	if (isMove(window, oim))
+	{
+		MatrixF sPlus = 1*position + oim[0] * py + oim[1] * pz + oim[3] * px;
+		position = sPlus;
+	}
+	return array<float, 7>{position.get(1), position.get(2), position.get(3), sin(pPast1.first), cos(pPast1.first), sin(pPast1.second), cos(pPast1.second) };
+
+
 
 }
 
