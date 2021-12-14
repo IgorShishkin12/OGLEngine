@@ -22,9 +22,50 @@ bool isSphereIntersect( in vec3 rayOrigin, in vec3 rayDirection, in vec3 center,
 	distance2 = -b + h;
 	if(distance1==0.0||distance2==0.0) return false;
 	return true;
-
 }
  
+bool isBoxIntersect( in vec3 rayOrigin, in vec3 rayDirection, vec3 boxSize, out vec3 outNormal,out float tN,out float tF) 
+{
+	vec3 m = 1.0/rayDirection;
+	vec3 n = m*rayOrigin;
+	vec3 k = abs(m)*boxSize;
+	vec3 t1 = -n - k;
+	vec3 t2 = -n + k;
+	tN = max( max( t1.x, t1.y ), t1.z );
+	tF = min( min( t2.x, t2.y ), t2.z );
+	if( tN>tF || tF<0.0) return false;
+	outNormal = -sign(rayDirection)*step(t1.yzx,t1.xyz)*step(t1.zxy,t1.xyz);
+	return true;
+}
+bool getBoxClr(in vec3 me,in vec3 lookTo,in vec3 boxSize,in vec3 boxRot, in vec3 boxOrigin, out float len,out vec3 norm)
+{
+	me = me-boxOrigin;
+	vec2 rmxx,rmxy,rmxz;
+	mat3 rmxsum;
+	rmxsum=mat3(
+		rmxx.x,rmxx.y,0,
+		-rmxx.y,rmxx.x,0,
+		0,0,1
+	)
+	*mat3(
+		rmxy.x,0,rmxy.y,
+		0,1,0,
+		-rmxy.y,0,rmxy.x,
+	)
+	*mat3(
+	1,0,0,
+	0,rmxz.x,rmxz.y,
+	0,-rmxz.y,rmxz.x
+	);
+	me=me*rmxsum;
+	lookTo=lookTo*rmxsum;
+	bool ans;
+	ans = isBoxIntersect(me,lookTo,boxSize,norm,)
+
+		
+}
+
+
 vec3 sphN(vec3 sphCen,vec3 me,vec3 rayDirection,float distance)
 {
 	return normalize(me+rayDirection*distance-sphCen);
@@ -84,6 +125,8 @@ bool getSphClr(in vec3 me,in vec3 lookTo, out float len, out vec4 color,out vec3
 	normal = sphN(texelFetch(Spheres,ivec2(iNow,0),0).yzw,me,lookTo,len);
 	return true;
 }
+
+
 bool RTX(in vec3 me,in vec3 lookTo,  out vec4 color)
 {
 	vec4 colors[4];

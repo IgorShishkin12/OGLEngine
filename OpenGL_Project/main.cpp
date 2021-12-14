@@ -201,7 +201,16 @@ std::array<float, 4> mouse()
 }
 
 
-
+std::array<float, 9> getRmxForBox(float a, float b, float c)
+{
+	MatrixF mx1(3),mx2(3),mx3(3),mx4(3);
+	mx1 = changeRMx3('x', a);
+	mx2 = changeRMx3('y', b);
+	mx3 = changeRMx3('x', c);
+	mx4 = mx1 * mx2;
+	mx4 = mx4 * mx3;
+	return std::array<float, 9>{mx4.get(1, 1), mx4.get(1, 2), mx4.get(1, 3), mx4.get(2, 1), mx4.get(2, 2), mx4.get(2, 3), mx4.get(3, 1), mx4.get(3, 2), mx4.get(3, 3) };
+}
 
 // glfw: всякий раз, когда изменяются размеры окна (пользователем или операционной системой), вызывается данная callback-функция
 void framebuffer_size_callback(GLFWwindow* window, int width, int height)
