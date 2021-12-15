@@ -24,25 +24,31 @@ bool isSphereIntersect( in vec3 rayOrigin, in vec3 rayDirection, in vec3 center,
 	return true;
 }
  
-bool isBoxIntersect( in vec3 rayOrigin, in vec3 rayDirection, vec3 boxSize, out vec3 outNormal,out float tN,out float tF) 
+bool isBoxIntersect( in vec3 rayOrigin, in vec3 rayDirection,in vec3 boxSize, out vec3 outNormal,out float toNear) 
 {
+	if(dot(rayDirection,-rayOrigin)<0)
+		return false;
+	float toFar;
 	vec3 m = 1.0/rayDirection;
 	vec3 n = m*rayOrigin;
 	vec3 k = abs(m)*boxSize;
 	vec3 t1 = -n - k;
 	vec3 t2 = -n + k;
-	tN = max( max( t1.x, t1.y ), t1.z );
-	tF = min( min( t2.x, t2.y ), t2.z );
-	if( tN>tF || tF<0.0) return false;
+	toNear = max( max( t1.x, t1.y ), t1.z );
+	toFar = min( min( t2.x, t2.y ), t2.z );
+	if( toNear>=toFar || toFar<0.0 || toNear<0.0) return false;
 	outNormal = -sign(rayDirection)*step(t1.yzx,t1.xyz)*step(t1.zxy,t1.xyz);
 	return true;
 }
 bool getBoxClr(in vec3 me,in vec3 lookTo,in vec3 boxSize,in vec3 boxRot, in vec3 boxOrigin, out float len,out vec3 norm)
 {
 	me = me-boxOrigin;
-	vec2 rmxx,rmxy,rmxz;
+	/*vec2 rmxx,rmxy,rmxz;
+	rmxx=vec2(1,0);
+	rmxy=vec2(1,0);
+	rmxz=vec2(1,0);
 	mat3 rmxsum;
-	rmxsum=mat3(
+	/*rmxsum=mat3(
 		rmxx.x,rmxx.y,0,
 		-rmxx.y,rmxx.x,0,
 		0,0,1
@@ -50,7 +56,7 @@ bool getBoxClr(in vec3 me,in vec3 lookTo,in vec3 boxSize,in vec3 boxRot, in vec3
 	*mat3(
 		rmxy.x,0,rmxy.y,
 		0,1,0,
-		-rmxy.y,0,rmxy.x,
+		-rmxy.y,0,rmxy.x
 	)
 	*mat3(
 	1,0,0,
@@ -58,11 +64,26 @@ bool getBoxClr(in vec3 me,in vec3 lookTo,in vec3 boxSize,in vec3 boxRot, in vec3
 	0,-rmxz.y,rmxz.x
 	);
 	me=me*rmxsum;
-	lookTo=lookTo*rmxsum;
+	lookTo=lookTo*rmxsum;*/
 	bool ans;
-	ans = isBoxIntersect(me,lookTo,boxSize,norm,)
-
-		
+	ans = isBoxIntersect(me,lookTo,boxSize,norm,len);
+	if(ans==false) return false;
+	/*norm = norm*mat3(
+		rmxx.x,-rmxx.y,0,
+		rmxx.y,rmxx.x,0,
+		0,0,1
+	)
+	*mat3(
+		rmxy.x,0,-rmxy.y,
+		0,1,0,
+		rmxy.y,0,rmxy.x
+	)
+	*mat3(
+	1,0,0,
+	0,rmxz.x,-rmxz.y,
+	0,rmxz.y,rmxz.x
+	);	*/	
+	return true;
 }
 
 
@@ -129,27 +150,60 @@ bool getSphClr(in vec3 me,in vec3 lookTo, out float len, out vec4 color,out vec3
 
 bool RTX(in vec3 me,in vec3 lookTo,  out vec4 color)
 {
-	vec4 colors[4];
-	float lengs[4];
-	vec3 norm;
-	int j = 0;
+	vec4 colors[3][4];
+	float lengs[3][4];
+	vec3 norm[3];
+	int j =0;
+	colors[2][0]=vec4(1,0,1,1);
 	for(int i = 0;i<4;++i)
 	{
-	if(getSphClr(me,lookTo,lengs[i],colors[i],norm))
+	if(getSphClr(me,lookTo,lengs[1][i],colors[1][i],norm[1]))
 	{
-	j++;
-	me = me+lookTo*lengs[i];
-	lookTo = reflect(lookTo,norm);
+	++j;
+	//in vec3 me,in vec3 lookTo,in vec3 boxSize,in vec3 boxRot, in vec3 boxOrigin, out float len,out vec3 norm)
+	}
+	else
+	{
+	lengs[1][i]=1000000000000000000000.0;
+
+	}
+	if(getBoxClr(me,lookTo,vec3(100,10,10),vec3(1,100,10),vec3(1,-110,-110),lengs[2][i],norm[2]))
+	{
+	++j;
+	}
+	else
+	{
+		
+	lengs[2][i]=1000000000000000000000.0;
+	}
+	if(false)
+	{
+		float q;
+	}
+	else if(lengs[2][i]<lengs[1][i]/*&&false/**/)
+	{
+		lengs[0][i]=lengs[2][i];
+		colors[0][i]=colors[2][0];
+		norm[0]=norm[2];
+
 	}
 	else{
-		break;
+		lengs[0][i]=lengs[1][i];
+		colors[0][i]=colors[1][i];
+		norm[0]=norm[1];
+
 	}
+	me = me+lookTo*lengs[0][i];
+	lookTo = reflect(lookTo,norm[0]);
 	}
 
 	color = vec4(1,1,1,1)/2;
 	for (int i = j-1;i>-1;--i)
 	{
-	color=(color+colors[i])*(1.0-lengs[i]/10000)+vec4(1,1,1,1)*lengs[i]/10000;
+	//i=2;
+	color=(color*0.3+colors[0][i])*(1.0-lengs[0][i]/10000)+vec4(1,1,1,1)*lengs[0][i]/10000;
+	//if(lengs[0][i]<10000)
+	//color=color+vec4(1,1,abs(sin(1+(lengs[2][i]))),0);
 	color = vec4(normalize(color.xyz),1);
 	}
 	return j!=0;
