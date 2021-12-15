@@ -40,15 +40,17 @@ bool isBoxIntersect( in vec3 rayOrigin, in vec3 rayDirection,in vec3 boxSize, ou
 	outNormal = -sign(rayDirection)*step(t1.yzx,t1.xyz)*step(t1.zxy,t1.xyz);
 	return true;
 }
+
+
 bool getBoxClr(in vec3 me,in vec3 lookTo,in vec3 boxSize,in vec3 boxRot, in vec3 boxOrigin, out float len,out vec3 norm)
 {
 	me = me-boxOrigin;
-	/*vec2 rmxx,rmxy,rmxz;
+	vec2 rmxx,rmxy,rmxz;
 	rmxx=vec2(1,0);
-	rmxy=vec2(1,0);
-	rmxz=vec2(1,0);
+	rmxy=vec2(0.45,0.55);
+	rmxz=vec2(0.3,0.7);
 	mat3 rmxsum;
-	/*rmxsum=mat3(
+	rmxsum=mat3(
 		rmxx.x,rmxx.y,0,
 		-rmxx.y,rmxx.x,0,
 		0,0,1
@@ -64,11 +66,11 @@ bool getBoxClr(in vec3 me,in vec3 lookTo,in vec3 boxSize,in vec3 boxRot, in vec3
 	0,-rmxz.y,rmxz.x
 	);
 	me=me*rmxsum;
-	lookTo=lookTo*rmxsum;*/
+	lookTo=lookTo*rmxsum;
 	bool ans;
 	ans = isBoxIntersect(me,lookTo,boxSize,norm,len);
 	if(ans==false) return false;
-	/*norm = norm*mat3(
+	norm = norm*mat3(
 		rmxx.x,-rmxx.y,0,
 		rmxx.y,rmxx.x,0,
 		0,0,1
@@ -82,7 +84,7 @@ bool getBoxClr(in vec3 me,in vec3 lookTo,in vec3 boxSize,in vec3 boxRot, in vec3
 	1,0,0,
 	0,rmxz.x,-rmxz.y,
 	0,rmxz.y,rmxz.x
-	);	*/	
+	);
 	return true;
 }
 
