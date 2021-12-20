@@ -1,6 +1,7 @@
 #pragma once
 #include <array>
 #include"Matrix.h"
+#define SIZEbxh 12
 class Box
 {
 	typedef float angle;
@@ -10,18 +11,23 @@ class Box
 	std::array<float, 3> sizes;//x,y,z ширина,высота,глубина
 	std::array<float, 3> position;//x,y,z
 	bool isDefPosInTex;
+	const int size = SIZEbxh;
 	std::pair<unsigned long, unsigned long> posInTex;
 public:
 	Box(float sizex, float sizey, float sizez, float x, float y, float z, float a1=0, float b1=0, float c1=0) :
 		a{ a1 }, b{ b1 }, c{ c1 }, sizes{ sizex,sizey,sizez }, position{ x,y,z }
 	{
-			if (a != 0 || b != 0 || c != 0)
+		if (a != 0 || b != 0 || c != 0)
 		{
-				sicoss = { sin(a),cos(a),sin(b),cos(b),sin(c),cos(c) };
+			sicoss = { sin(a),cos(a),sin(b),cos(b),sin(c),cos(c) };
+		}
+		else
+		{
+			sicoss={ 0,1,0,1,0,1 };
 		}
 	}
 
-	std::array<float, 12> get()
+	std::array<float, SIZEbxh> get()
 	{
 		return{ sicoss[0], sicoss[1], sicoss[2], sicoss[3], sicoss[4], sicoss[5],sizes[0],sizes[1],sizes[2],position[0],position[1],position[2] };
 	}

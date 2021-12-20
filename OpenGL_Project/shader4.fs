@@ -41,8 +41,7 @@ bool isBoxIntersect( in vec3 rayOrigin, in vec3 rayDirection,in vec3 boxSize, ou
 	return true;
 }
 
-
-bool getBoxClr(in vec3 me,in vec3 lookTo,in vec3 boxSize,in vec3 boxRot, in vec3 boxOrigin, out float len,out vec3 norm)
+bool getBoxClr(in vec3 me,in vec3 lookTo,in vec3 boxSize,in vec3 boxRot, in vec3 boxOrigin, out float len, out vec3 norm)
 {
 	me = me-boxOrigin;
 	vec2 rmxx,rmxy,rmxz;

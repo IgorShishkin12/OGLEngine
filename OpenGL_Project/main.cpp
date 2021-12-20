@@ -13,6 +13,7 @@
 #include "shader.h"
 #include "Matrix.h"
 #include "Sphere.h"
+#include"Textures.h"
 //#include "stb_image.h"
 #include<array>
 #include <iostream>
@@ -144,19 +145,16 @@ int main()
 		glClear(GL_COLOR_BUFFER_BIT);
 
 
-		// Рендеринг ящика
 		ourShader.use();
 		glBindVertexArray(VAO);
 		glDrawElements(GL_TRIANGLES, 6, GL_UNSIGNED_INT, 0);
 		mice2 = mouse();
-			//std::cout << mice2[0][0]<< "\t" << mice2[0][1]<< "\t" << mice2[1][0]<<"\t" << mice2[1][1]<< "\t" << 0.00005<<std::endl;
 		glUniform4f(ID_mice, mice2[0], mice2[1], mice2[2], mice2[3]);
 		glUniform2i(ID_sizeSph, sizex, sizey);
 
 		if (isMove(window, moveCrd))
 		{
 			glUniform3f(ID_coords, moveCrd[0], moveCrd[1], moveCrd[2]);
-			//cout << "tt";
 		}
 		// glfw: обмен содержимым front- и back- буферов. Отслеживание событий ввода/вывода (была ли нажата/отпущена кнопка, перемещен курсор мыши и т.п.)
 		glfwSwapBuffers(window);
@@ -201,7 +199,7 @@ std::array<float, 4> mouse()
 }
 
 
-std::array<float, 9> getRmxForBox(float a, float b, float c)
+/*std::array<float, 9> getRmxForBox(float a, float b, float c)
 {
 	MatrixF mx1(3),mx2(3),mx3(3),mx4(3);
 	mx1 = changeRMx3('x', a);
@@ -210,7 +208,7 @@ std::array<float, 9> getRmxForBox(float a, float b, float c)
 	mx4 = mx1 * mx2;
 	mx4 = mx4 * mx3;
 	return std::array<float, 9>{mx4.get(1, 1), mx4.get(1, 2), mx4.get(1, 3), mx4.get(2, 1), mx4.get(2, 2), mx4.get(2, 3), mx4.get(3, 1), mx4.get(3, 2), mx4.get(3, 3) };
-}
+}*/
 
 // glfw: всякий раз, когда изменяются размеры окна (пользователем или операционной системой), вызывается данная callback-функция
 void framebuffer_size_callback(GLFWwindow* window, int width, int height)
