@@ -106,15 +106,15 @@ int main()
 	constexpr int sizex = 8, sizey = 1;
 	vector<Sphere> vec;
 	{
-		vec.resize(0);//float radius=1, float x=0, float y=0, float z=0, float r=0, float g=0, float b=0, float a=1
+		vec.resize(4);//float radius=1, float x=0, float y=0, float z=0, float r=0, float g=0, float b=0, float a=1
 
-			//vec[0] = Sphere{ 100,14,100,39,0,3,8,1 };
-			//vec[1] = Sphere{ 50,14,-100,-39,9,3,2,1 };
-			//vec[2] = Sphere{ 10,14,-100,200,0,3,0,1 };
-			//vec[3] = Sphere{ 45,-14,100,309,3,3,3,1 };
+			vec[0] = Sphere{100,14,100,39,0,3,8,1};
+			vec[1] = Sphere{50,14,-100,-39,9,3,2,1};
+			vec[2] = Sphere{ 10,14,-100,200,0,3,0,1 };
+			vec[3] = Sphere{ 45,-14,100,309,3,3,3,1 };/**/
 	}
 	vector<Box> vec2(1);//(float sizex=0, float sizey=0, float sizez=0, float x=0, float y=0, float z=0, float a1=0, float b1=0, float c1=0
-	vec2[0] = Box{ 7,8,90,100,18,27,1 / 4,1 / 5.1 / 6 };
+	vec2[0] = Box{ 7,8,900,100,18,27,1 / 4,1 / 5.1 / 6 };
 	Textures tex(ourShader, vec2, vec);
 	tex.makeOut();
 	tex.send();

@@ -10,7 +10,7 @@ uniform vec4 mouse;
 uniform ivec2 sizeSph;
 uniform ivec2 SphBeg_to_End;
 uniform ivec2 BoxBeg_to_End;
-uniform sampler2D Content;//{radius, x, y, z, r, g, b,0};
+uniform sampler2D Content;
 
 bool isSphereIntersect( in vec3 rayOrigin, in vec3 rayDirection, in vec3 center, in float radius, out float distance1,out float distance2 )
 {
@@ -28,6 +28,7 @@ bool isSphereIntersect( in vec3 rayOrigin, in vec3 rayDirection, in vec3 center,
  
 bool isBoxIntersect( in vec3 rayOrigin, in vec3 rayDirection,in vec3 boxSize, out vec3 outNormal,out float toNear) 
 {
+	//boxSize = vec3(10,10,10);
 	if(dot(rayDirection,-rayOrigin)<0)
 		return false;
 	float toFar;
@@ -62,9 +63,9 @@ bool getBoxClr1(in vec3 me,in vec3 lookTo,in vec3 boxSize,in vec4 boxRotxy,in ve
 		-rmxy.y,0,rmxy.x
 	)
 	*mat3(
-	1,0,0,
-	0,rmxz.x,rmxz.y,
-	0,-rmxz.y,rmxz.x
+		1,0,0,
+		0,rmxz.x,rmxz.y,
+		0,-rmxz.y,rmxz.x
 	);
 	me=me*rmxsum;
 	lookTo=lookTo*rmxsum;
@@ -82,9 +83,9 @@ bool getBoxClr1(in vec3 me,in vec3 lookTo,in vec3 boxSize,in vec4 boxRotxy,in ve
 		rmxy.y,0,rmxy.x
 	)
 	*mat3(
-	1,0,0,
-	0,rmxz.x,-rmxz.y,
-	0,rmxz.y,rmxz.x
+		1,0,0,
+		0,rmxz.x,-rmxz.y,
+		0,rmxz.y,rmxz.x
 	);
 	return true;
 }
@@ -92,39 +93,37 @@ bool getBoxClr(in vec3 me,in vec3 lookTo,out float len, out vec3 norm,out vec4 c
 {
 	//return true;
 	vec4 sphs1,sphs2,sphs3;
-	float distan1,distan2,lenNow = 1000000000000000000000.0;
+	float lenNow = 1000000000000000000000.0;
 	len = lenNow;
 	int iNow = BoxBeg_to_End.x;
-	int size = BoxBeg_to_End.y-BoxBeg_to_End.x;
+	int size = BoxBeg_to_End.y;
 	if(size==0) return false;
-	for (int i = SphBeg_to_End.x;i<size;i=i+3)
+	for (int i = BoxBeg_to_End.x;i<size;i=i+3)
 	{//sicoss[0], sicoss[1], sicoss[2], sicoss[3], sicoss[4], sicoss[5],sizes[0],sizes[1],sizes[2],position[0],position[1],position[2] 
 		sphs1 = texelFetch(Content,ivec2(i,0),0);
 		sphs2 = texelFetch(Content,ivec2(i+1,0),0);
 		sphs3 = texelFetch(Content,ivec2(i+2,0),0);
 		if(!getBoxClr1(me,lookTo,vec3(sphs2.zw,sphs3.x),sphs1,sphs2.xy,sphs3.yzw,lenNow,norm))
 		{
+
 			continue;
-		color = normalize(vec4(1,0,1,1));
-		len=10;
-			return true;
 		}
 		else if(len>lenNow)
 		{
 			len=lenNow;
 			iNow=i;
-			return true;
-		color = normalize(vec4(0,0,1,1));
-		len=10;
+			//color = vec4(0,0,1,1);
 		}
-		else{
-		color = normalize(sphs3);
-		len=10;
-
+		else
+		{
+			continue;
+			//color = vec4(1,0,1,1);
 		}
 	}
+	color = normalize(sphs3);
+	
+	//len = 100;
 	if (len>1000000000000000000.0) return false;
-	//color = normalize(vec4(1,0,1,1));
 	return true;
 
 }
@@ -157,7 +156,7 @@ bool getSphClr(in vec3 me,in vec3 lookTo, out float len, out vec4 color,out vec3
 	len = lenNow;
 	vec3 sphCen;
 	int iNow = SphBeg_to_End.x;
-	int size = SphBeg_to_End.y-SphBeg_to_End.x;
+	int size = SphBeg_to_End.y;
 	if(size==0) return false;
 	for (int i = SphBeg_to_End.x;i<size;i=i+2)
 	{
@@ -196,75 +195,79 @@ bool RTX(in vec3 me,in vec3 lookTo,  out vec4 color)
 	float lengs[3][4];
 	vec3 norm[3];
 	int j =0;
-	colors[2][0]=vec4(1,0,1,1);
+	//colors[2][0]=vec4(1,0,1,1);
 	for(int i = 0;i<4;++i)
 	{
-	if(getSphClr(me,lookTo,lengs[1][i],colors[1][i],norm[1]))
-	{
-	++j;
-	//in vec3 me,in vec3 lookTo,in vec3 boxSize,in vec3 boxRot, in vec3 boxOrigin, out float len,out vec3 norm)
-	}
-	else
-	{
-	lengs[1][i]=1000000000000000000000.0;
+		if(getSphClr(me,lookTo,lengs[1][i],colors[1][i],norm[1]))
+		{
+			++j;
+			//in vec3 me,in vec3 lookTo,in vec3 boxSize,in vec3 boxRot, in vec3 boxOrigin, out float len,out vec3 norm)
+		}
+		else
+		{
+			lengs[1][i]=1000000000000000000000.0;
 
-	}
-	if(getBoxClr(me,lookTo,lengs[2][i],norm[2],colors[2][i]))
-	{
-	++j;
-	}
-	else
-	{
+		}
+		if(getBoxClr(me,lookTo,lengs[2][i],norm[2],colors[2][i]))
+		{
+			++j;
+		}
+		else
+		{
+			lengs[2][i]=1000000000000000000000.0;
+		}
 		
-	lengs[2][i]=1000000000000000000000.0;
-	}
-	if(false)
-	{
-		float q;
-	}
-	else if(lengs[2][i]<lengs[1][i]/*&&false/**/)
-	{
-		lengs[0][i]=lengs[2][i];
-		colors[0][i]=colors[2][0];
-		norm[0]=norm[2];
+		if(lengs[2][i]<lengs[1][i])
+		{
+			lengs[0][i]=lengs[2][i];
+			colors[0][i]=colors[2][0];
+			norm[0]=norm[2];
+		}
+		else if(lengs[2][i]>lengs[1][i])
+		{
+			lengs[0][i]=lengs[1][i];
+			colors[0][i]=colors[1][i];
+			norm[0]=norm[1];
 
-	}
-	else{
-		lengs[0][i]=lengs[1][i];
-		colors[0][i]=colors[1][i];
-		norm[0]=norm[1];
-
-	}
-	me = me+lookTo*lengs[0][i];
-	lookTo = reflect(lookTo,norm[0]);
+		}
+		else if(lengs[2][i]==1000000000000000000000.0)
+		{
+			break;
+			lengs[0][i]=lengs[1][i];
+			colors[0][i]=vec4(1,0,1,1);
+			norm[0]=norm[1];
+			
+		}
+		me = me+lookTo*lengs[0][i];
+		lookTo = reflect(lookTo,norm[0]);
 	}
 
 	color = vec4(1,1,1,1)/2;
 	for (int i = j-1;i>-1;--i)
 	{
-	//i=2;
-	color=(color*0.3+colors[0][i])*(1.0-lengs[0][i]/10000)+vec4(1,1,1,1)*lengs[0][i]/10000;
-	//if(lengs[0][i]<10000)
-	//color=color+vec4(1,1,abs(sin(1+(lengs[2][i]))),0);
-	color = vec4(normalize(color.xyz),1);
+		//i=2;
+		color=(color*0.3+colors[0][i])*(1.0-lengs[0][i]/10000)+vec4(1,1,1,1)*lengs[0][i]/10000;
+		//if(lengs[0][i]<10000)
+		//color=color+vec4(1,1,abs(sin(1+(lengs[2][i]))),0);
+		color = vec4(normalize(color.xyz),1);
 	}
 	return j!=0;
 
 }
 void main()
 {
-vec3 me,ecran;
-vec4 clr;
-float len;
-vec3 normal;
-getPosition(me,ecran);
-if(RTX(me,ecran,clr))
-{
-	gl_FragColor = clr;
-}
-else
-{
-	gl_FragColor = vec4(normalize(vec3(2.0,1.0,0.0)),1.0);
-}
+	vec3 me,ecran;
+	vec4 clr;
+	float len;
+	vec3 normal;
+	getPosition(me,ecran);
+	if(RTX(me,ecran,clr))
+	{
+		gl_FragColor = clr;
+	}
+	else
+	{
+		gl_FragColor = vec4(normalize(vec3(2.0,1.0,0.0)),1.0);
+	}
 }
 

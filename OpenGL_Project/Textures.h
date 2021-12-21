@@ -55,7 +55,7 @@ public:
 				out.push_back(j);
 			}
 		}
-		boxesSize = out.size() - spheresSize;
+		boxesSize = out.size();
 	}
 	void send()
 	{
@@ -63,17 +63,17 @@ public:
 		glUniform2i(ID_sizeSph, sph0.size, sizey);
 		glUniform2i(ID_sizeSphes, 0, spheresSize);
 		glUniform2i(ID_sizeBoxes, spheresSize+1, boxesSize + spheresSize+1);
-		/*for (auto q : out)
+		for (auto q : out)
 		{
 			cout << q << "\n";
-		}*/
+		}
 	}
 	void sendData()
 	{
 
 		glUniform2i(ID_sizeSph,sph0.size, sizey);
-		glUniform2i(ID_sizeSphes, 0, spheresSize);
-		glUniform2i(ID_sizeBoxes, spheresSize+1, boxesSize + spheresSize+1);
+		glUniform2i(ID_sizeSphes, 0, spheresSize/4);
+		glUniform2i(ID_sizeBoxes, spheresSize/4, boxesSize/4);
 		//cout << spheresSize<<"\n";
 	}
 
