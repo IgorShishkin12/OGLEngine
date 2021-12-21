@@ -113,8 +113,9 @@ int main()
 			vec[2] = Sphere{ 10,14,-100,200,0,3,0,1 };
 			vec[3] = Sphere{ 45,-14,100,309,3,3,3,1 };/**/
 	}
-	vector<Box> vec2(1);//(float sizex=0, float sizey=0, float sizez=0, float x=0, float y=0, float z=0, float a1=0, float b1=0, float c1=0
-	vec2[0] = Box{ 7,8,900,100,18,27,1 / 4,1 / 5.1 / 6 };
+	vector<Box> vec2(2);//(float sizex=0, float sizey=0, float sizez=0, float x=0, float y=0, float z=0, float a1=0, float b1=0, float c1=0
+	vec2[0] = Box{ 7,8,900,100,18,27,1 / 4,1 / 5,1 / 6 };
+	vec2[1] = Box{ 7,80,90,10,7,50,1 / 9,1 / 1,1 / 8 };
 	Textures tex(ourShader, vec2, vec);
 	tex.makeOut();
 	tex.send();

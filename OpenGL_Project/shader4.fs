@@ -95,6 +95,7 @@ bool getBoxClr(in vec3 me,in vec3 lookTo,out float len, out vec3 norm,out vec4 c
 	vec4 sphs1,sphs2,sphs3;
 	float lenNow = 1000000000000000000000.0;
 	len = lenNow;
+	vec3 normAns;
 	int iNow = BoxBeg_to_End.x;
 	int size = BoxBeg_to_End.y;
 	if(size==0) return false;
@@ -112,6 +113,8 @@ bool getBoxClr(in vec3 me,in vec3 lookTo,out float len, out vec3 norm,out vec4 c
 		{
 			len=lenNow;
 			iNow=i;
+			normAns=norm;
+			color = normalize(sphs3);
 			//color = vec4(0,0,1,1);
 		}
 		else
@@ -120,9 +123,10 @@ bool getBoxClr(in vec3 me,in vec3 lookTo,out float len, out vec3 norm,out vec4 c
 			//color = vec4(1,0,1,1);
 		}
 	}
-	color = normalize(sphs3);
 	
 	//len = 100;
+	
+	norm=normAns;
 	if (len>1000000000000000000.0) return false;
 	return true;
 
