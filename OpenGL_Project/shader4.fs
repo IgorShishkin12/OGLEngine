@@ -8,7 +8,9 @@ vec2 u_resolution=vec2(600.0,800.0);
 uniform vec3 me1;
 uniform vec4 mouse;
 uniform ivec2 sizeSph;
-uniform sampler2D Spheres;//{radius, x, y, z, r, g, b,0};
+uniform ivec2 SphBeg_to_End;
+uniform ivec2 BoxBeg_to_End;
+uniform sampler2D Content;//{radius, x, y, z, r, g, b,0};
 
 bool isSphereIntersect( in vec3 rayOrigin, in vec3 rayDirection, in vec3 center, in float radius, out float distance1,out float distance2 )
 {
@@ -41,13 +43,13 @@ bool isBoxIntersect( in vec3 rayOrigin, in vec3 rayDirection,in vec3 boxSize, ou
 	return true;
 }
 
-bool getBoxClr(in vec3 me,in vec3 lookTo,in vec3 boxSize,in vec3 boxRot, in vec3 boxOrigin, out float len, out vec3 norm)
+bool getBoxClr1(in vec3 me,in vec3 lookTo,in vec3 boxSize,in vec4 boxRotxy,in vec2 boxRotz, in vec3 boxOrigin, out float len, out vec3 norm)
 {
 	me = me-boxOrigin;
 	vec2 rmxx,rmxy,rmxz;
-	rmxx=vec2(1,0);
-	rmxy=vec2(0.45,0.55);
-	rmxz=vec2(0.3,0.7);
+	rmxx=boxRotxy.xy;
+	rmxy=boxRotxy.zw;
+	rmxz=boxRotz;
 	mat3 rmxsum;
 	rmxsum=mat3(
 		rmxx.x,rmxx.y,0,
@@ -86,7 +88,46 @@ bool getBoxClr(in vec3 me,in vec3 lookTo,in vec3 boxSize,in vec3 boxRot, in vec3
 	);
 	return true;
 }
+bool getBoxClr(in vec3 me,in vec3 lookTo,out float len, out vec3 norm,out vec4 color)
+{
+	//return true;
+	vec4 sphs1,sphs2,sphs3;
+	float distan1,distan2,lenNow = 1000000000000000000000.0;
+	len = lenNow;
+	int iNow = BoxBeg_to_End.x;
+	int size = BoxBeg_to_End.y-BoxBeg_to_End.x;
+	if(size==0) return false;
+	for (int i = SphBeg_to_End.x;i<size;i=i+3)
+	{//sicoss[0], sicoss[1], sicoss[2], sicoss[3], sicoss[4], sicoss[5],sizes[0],sizes[1],sizes[2],position[0],position[1],position[2] 
+		sphs1 = texelFetch(Content,ivec2(i,0),0);
+		sphs2 = texelFetch(Content,ivec2(i+1,0),0);
+		sphs3 = texelFetch(Content,ivec2(i+2,0),0);
+		if(!getBoxClr1(me,lookTo,vec3(sphs2.zw,sphs3.x),sphs1,sphs2.xy,sphs3.yzw,lenNow,norm))
+		{
+			continue;
+		color = normalize(vec4(1,0,1,1));
+		len=10;
+			return true;
+		}
+		else if(len>lenNow)
+		{
+			len=lenNow;
+			iNow=i;
+			return true;
+		color = normalize(vec4(0,0,1,1));
+		len=10;
+		}
+		else{
+		color = normalize(sphs3);
+		len=10;
 
+		}
+	}
+	if (len>1000000000000000000.0) return false;
+	//color = normalize(vec4(1,0,1,1));
+	return true;
+
+}
 
 vec3 sphN(vec3 sphCen,vec3 me,vec3 rayDirection,float distance)
 {
@@ -115,13 +156,13 @@ bool getSphClr(in vec3 me,in vec3 lookTo, out float len, out vec4 color,out vec3
 	float distan1,distan2,radiusSph,lenNow = 1000000000000000000000.0;
 	len = lenNow;
 	vec3 sphCen;
-	int iNow = 0;
-	int size = sizeSph.x*sizeSph.y;
+	int iNow = SphBeg_to_End.x;
+	int size = SphBeg_to_End.y-SphBeg_to_End.x;
 	if(size==0) return false;
-	for (int i = 0;i<size;i=i+2)
+	for (int i = SphBeg_to_End.x;i<size;i=i+2)
 	{
-		sphs1 = texelFetch(Spheres,ivec2(i,0),0);
-		sphs2 = texelFetch(Spheres,ivec2(i+1,0),0);
+		sphs1 = texelFetch(Content,ivec2(i,0),0);
+		sphs2 = texelFetch(Content,ivec2(i+1,0),0);
 		sphCen = sphs1.yzw;
 		radiusSph = sphs1.x;
 		if(!isSphereIntersect(me,lookTo,sphCen,radiusSph,distan1,distan2))
@@ -143,8 +184,8 @@ bool getSphClr(in vec3 me,in vec3 lookTo, out float len, out vec4 color,out vec3
 		}
 	}
 	if (len>10000000.0) return false;
-	color = normalize(vec4(texelFetch(Spheres,ivec2(iNow+1,0),0).xyz,1.0));
-	normal = sphN(texelFetch(Spheres,ivec2(iNow,0),0).yzw,me,lookTo,len);
+	color = normalize(vec4(texelFetch(Content,ivec2(iNow+1,0),0).xyz,1.0));
+	normal = sphN(texelFetch(Content,ivec2(iNow,0),0).yzw,me,lookTo,len);
 	return true;
 }
 
@@ -168,7 +209,7 @@ bool RTX(in vec3 me,in vec3 lookTo,  out vec4 color)
 	lengs[1][i]=1000000000000000000000.0;
 
 	}
-	if(getBoxClr(me,lookTo,vec3(100,10,10),vec3(1,100,10),vec3(1,-110,-110),lengs[2][i],norm[2]))
+	if(getBoxClr(me,lookTo,lengs[2][i],norm[2],colors[2][i]))
 	{
 	++j;
 	}

@@ -35,7 +35,7 @@ int main()
 
 
 	// glfw: создание окна
-	GLFWwindow* window = glfwCreateWindow(SCR_WIDTH, SCR_HEIGHT, "OpenGL for Ravesli.com", NULL, NULL);
+	GLFWwindow* window = glfwCreateWindow(SCR_WIDTH, SCR_HEIGHT, "My Game", NULL, NULL);
 	if (window == NULL)
 	{
 		std::cout << "Failed to create GLFW window" << std::endl;
@@ -103,37 +103,21 @@ int main()
 	std::array <float, 4> mice2{ 0,1,0,1 };
 	int ID_mice = glGetUniformLocation(ourShader.getID(), "mouse");
 
-	int ID_sizeSph = glGetUniformLocation(ourShader.getID(), "sizeSph");
-
-	unsigned int ID_texDataSph;
-	glGenTextures(1, &ID_texDataSph);
-	glBindTexture(GL_TEXTURE_2D, ID_texDataSph);
 	constexpr int sizex = 8, sizey = 1;
-	glUniform2i(ID_sizeSph, sizex, sizey);
 	vector<Sphere> vec;
 	{
-		vec.resize(sizex*sizey/2);//float radius=1, float x=0, float y=0, float z=0, float r=0, float g=0, float b=0, float a=1
+		vec.resize(0);//float radius=1, float x=0, float y=0, float z=0, float r=0, float g=0, float b=0, float a=1
 
-			vec[0] = Sphere{ 100,14,100,39,0,3,8,1 };
-			vec[1] = Sphere{ 50,14,100,39,9,3,2,1 };
-			vec[2] = Sphere{ 10,14,-100,200,0,3,2,1 };
-			vec[3] = Sphere{ 45,-14,10,309,3,3,3,1 };
+			//vec[0] = Sphere{ 100,14,100,39,0,3,8,1 };
+			//vec[1] = Sphere{ 50,14,-100,-39,9,3,2,1 };
+			//vec[2] = Sphere{ 10,14,-100,200,0,3,0,1 };
+			//vec[3] = Sphere{ 45,-14,100,309,3,3,3,1 };
 	}
-	//cout << setprecision(50);
-	//cout << vec[0].radius;
-	vector <std::array<float, 8>> toTex;
-	for (int i = 0; i < sizex * sizey/2; ++i)
-	{
-		toTex.push_back(vec[i].getArr());
-	}
-	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);//см ниже
-	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);//пиксель на всей области одного цвета
-	glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA32F, sizex , sizey, 0, GL_RGBA,GL_FLOAT,&toTex[0][0]);                  //gl_rgba32f ненормализует
-	//все о тексстурах: обычно цвета нормализуются, в gl_rgba32f не нормализуются
-	// параметры:https://www.khronos.org/registry/OpenGL-Refpages/gl4/html/glTexImage2D.xhtml
-	//  texelFetch позволяет передавать в аргументах значения как для массива
-	// 
-	// Цикл рендеринга
+	vector<Box> vec2(1);//(float sizex=0, float sizey=0, float sizez=0, float x=0, float y=0, float z=0, float a1=0, float b1=0, float c1=0
+	vec2[0] = Box{ 7,8,90,100,18,27,1 / 4,1 / 5.1 / 6 };
+	Textures tex(ourShader, vec2, vec);
+	tex.makeOut();
+	tex.send();
 
 	while (!glfwWindowShouldClose(window))
 	{
@@ -150,7 +134,7 @@ int main()
 		glDrawElements(GL_TRIANGLES, 6, GL_UNSIGNED_INT, 0);
 		mice2 = mouse();
 		glUniform4f(ID_mice, mice2[0], mice2[1], mice2[2], mice2[3]);
-		glUniform2i(ID_sizeSph, sizex, sizey);
+		tex.sendData();
 
 		if (isMove(window, moveCrd))
 		{
@@ -197,18 +181,6 @@ std::array<float, 4> mouse()
 		}
 		return { sin(arr[1]), cos(arr[1]), sin(arr[0]), cos(arr[0]) };
 }
-
-
-/*std::array<float, 9> getRmxForBox(float a, float b, float c)
-{
-	MatrixF mx1(3),mx2(3),mx3(3),mx4(3);
-	mx1 = changeRMx3('x', a);
-	mx2 = changeRMx3('y', b);
-	mx3 = changeRMx3('x', c);
-	mx4 = mx1 * mx2;
-	mx4 = mx4 * mx3;
-	return std::array<float, 9>{mx4.get(1, 1), mx4.get(1, 2), mx4.get(1, 3), mx4.get(2, 1), mx4.get(2, 2), mx4.get(2, 3), mx4.get(3, 1), mx4.get(3, 2), mx4.get(3, 3) };
-}*/
 
 // glfw: всякий раз, когда изменяются размеры окна (пользователем или операционной системой), вызывается данная callback-функция
 void framebuffer_size_callback(GLFWwindow* window, int width, int height)
