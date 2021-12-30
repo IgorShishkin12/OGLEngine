@@ -11,6 +11,7 @@ uniform ivec2 sizeSph;
 uniform ivec2 SphBeg_to_End;
 uniform ivec2 BoxBeg_to_End;
 uniform sampler2D Content;
+uniform sampler2D ColorsTex;
 
 bool isSphereIntersect( in vec3 rayOrigin, in vec3 rayDirection, in vec3 center, in float radius, out float distance1,out float distance2 )
 {
@@ -42,6 +43,24 @@ bool isBoxIntersect( in vec3 rayOrigin, in vec3 rayDirection,in vec3 boxSize, ou
 	if( toNear>=toFar || toFar<0.0 || toNear<0.0) return false;
 	outNormal = -sign(rayDirection)*step(t1.yzx,t1.xyz)*step(t1.zxy,t1.xyz);
 	return true;
+}
+
+bool isTriIntersect( in vec3 rayOrigin, in vec3 rayDirection, in vec3 v0, in vec3 v1, in vec3 v2,out vec3 ans )
+{
+	if(dot(v0-rayOrigin,rayDirection)<0&&dot(v1-rayOrigin,rayDirection)<0&&dot(v2-rayOrigin,rayDirection)<0)return false;
+    vec3 v01 = v1 - v0;
+    vec3 v02 = v2 - v0;
+    vec3 rayOrigin0 =rayOrigin - v0;
+    vec3 normal0 = cross( v01, v02 );
+    vec3  q = cross( rayOrigin0, rayDirection );
+    float d = 1.0/dot( rayDirection,normal0 );
+    float u = d*dot( -q, v02 );
+    float v = d*dot(  q, v01 );
+    float t = d*dot( -normal0, rayOrigin0 );
+    if( u<0.0 || u>1.0 || v<0.0 || (u+v)>1.0 ) return false;
+	t=dot(v0-rayOrigin,rayDirection);
+	ans =  vec3( t, u, v );
+    return true;
 }
 
 bool getBoxClr1(in vec3 me,in vec3 lookTo,in vec3 boxSize,in vec4 boxRotxy,in vec2 boxRotz, in vec3 boxOrigin, out float len, out vec3 norm)
@@ -195,13 +214,15 @@ bool getSphClr(in vec3 me,in vec3 lookTo, out float len, out vec4 color,out vec3
 
 bool RTX(in vec3 me,in vec3 lookTo,  out vec4 color)
 {
-	vec4 colors[3][4];
-	float lengs[3][4];
-	vec3 norm[3];
+	vec4 colors[4][4];
+	float lengs[4][4];
+	vec3 norm[4];
+	vec3 triAns;
 	int j =0;
 	//colors[2][0]=vec4(1,0,1,1);
 	for(int i = 0;i<4;++i)
 	{
+		lengs[0][i]=1000000000000000000000.0;
 		if(getSphClr(me,lookTo,lengs[1][i],colors[1][i],norm[1]))
 		{
 			++j;
@@ -221,26 +242,35 @@ bool RTX(in vec3 me,in vec3 lookTo,  out vec4 color)
 			lengs[2][i]=1000000000000000000000.0;
 		}
 		
-		if(lengs[2][i]<lengs[1][i])
+		if(isTriIntersect(me,lookTo,vec3(-100,-100,-75),vec3(-20,-130,-80),vec3(-170,-110,-75),triAns))
+		{
+			++j;
+			lengs[3][i]=1/triAns.x;
+			colors[3][i]= vec4(0,1,1,1);
+			norm[3]=normalize(vec3(1,1,1));
+		}
+		else
+		{
+			lengs[3][i]=1000000000000000000000.0;
+		}
+		
+		if(lengs[0][i]>=lengs[2][i])
 		{
 			lengs[0][i]=lengs[2][i];
 			colors[0][i]=colors[2][0];
 			norm[0]=norm[2];
 		}
-		else if(lengs[2][i]>lengs[1][i])
+		if(lengs[0][i]>lengs[1][i])
 		{
 			lengs[0][i]=lengs[1][i];
 			colors[0][i]=colors[1][i];
 			norm[0]=norm[1];
-
 		}
-		else if(lengs[2][i]==1000000000000000000000.0)
+		if(lengs[0][i]>lengs[3][i])
 		{
-			break;
-			lengs[0][i]=lengs[1][i];
-			colors[0][i]=vec4(1,0,1,1);
-			norm[0]=norm[1];
-			
+			lengs[0][i]=lengs[3][i];
+			colors[0][i]=colors[3][i];
+			norm[0]=norm[3];
 		}
 		me = me+lookTo*lengs[0][i];
 		lookTo = reflect(lookTo,norm[0]);

@@ -13,10 +13,20 @@
 // 
 class Textures
 {
+	template<class t1>
+	class clr
+	{
+	public:
+		t1 r;
+		t1 g;
+		t1 b;
+		t1 a;
+	};
 	ShProg &ourShader;
 	Sphere sph0;
 	Box box0;
 	unsigned int ID_texDataSph;
+	unsigned int ID_texColor;
 	long spheresSize = 0;
 	long boxesSize = 0;
 	const int sizey = 1;
@@ -24,16 +34,40 @@ class Textures
 	int ID_sizeSph = glGetUniformLocation(ourShader.getID(), "sizeSph");
 	int ID_sizeSphes = glGetUniformLocation(ourShader.getID(), "SphBeg_to_End");
 	int ID_sizeBoxes = glGetUniformLocation(ourShader.getID(), "BoxBeg_to_End");
+	vector<float> colorOut;
+
 public:
+	vector<clr<float>> colorBox, colorSph;
 	std::vector<Box> boxes;
 	std::vector<Sphere> spheres;
 	Textures(ShProg sdr,std::vector<Box> bs,std::vector<Sphere> ss):
 		boxes{bs},spheres{ss},ourShader{sdr}
 	{
-	glGenTextures(1, &ID_texDataSph);
-	glBindTexture(GL_TEXTURE_2D, ID_texDataSph);
-	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);//см ниже
-	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);//пиксель на всей области одного цвета
+		glGenTextures(1, &ID_texDataSph);
+		glBindTexture(GL_TEXTURE_2D, ID_texDataSph);
+		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);//см ниже
+		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);//пиксель на всей области одного цвета
+		glGenTextures(1, &ID_texColor);
+		glBindTexture(GL_TEXTURE_2D, ID_texDataSph);
+		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);//см ниже
+		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);//пиксель на всей области одного цвета
+	}
+	void setColors()
+	{
+		for (auto i : colorSph)
+		{
+			colorOut.push_back(i.r);
+			colorOut.push_back(i.g);
+			colorOut.push_back(i.b);
+			colorOut.push_back(i.a);
+		}
+		for (auto i : colorBox)
+		{
+			colorOut.push_back(i.r);
+			colorOut.push_back(i.g);
+			colorOut.push_back(i.b);
+			colorOut.push_back(i.a);
+		}
 	}
 	void makeOut()
 	{
@@ -57,8 +91,16 @@ public:
 		}
 		boxesSize = out.size();
 	}
+	void sendColors()
+	{
+
+		glBindTexture(GL_TEXTURE_2D, ID_texDataSph);
+		glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA32F, colorOut.size(), 1, 0, GL_RGBA, GL_FLOAT, &colorOut[0]);                  //gl_rgba32f ненормализует
+
+	}
 	void send()
 	{
+		glBindTexture(GL_TEXTURE_2D, ID_texDataSph);
 		glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA32F, out.size(), sizey, 0, GL_RGBA, GL_FLOAT, &out[0]);                  //gl_rgba32f ненормализует
 		glUniform2i(ID_sizeSph, sph0.size, sizey);
 		glUniform2i(ID_sizeSphes, 0, spheresSize);
