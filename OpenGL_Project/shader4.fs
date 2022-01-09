@@ -255,7 +255,7 @@ bool RTX(in vec3 me,in vec3 lookTo,  out vec4 color)
 			lengs[3][i]=inf;
 		}
 		
-		if(lengs[0][i]>=lengs[2][i])
+		if(lengs[0][i]>lengs[2][i])
 		{
 			lengs[0][i]=lengs[2][i];
 			colors[0][i]=colors[2][0];
@@ -284,7 +284,7 @@ bool RTX(in vec3 me,in vec3 lookTo,  out vec4 color)
 	for (int i = j-1;i>-1;--i)
 	{
 		//i=2;
-		if(lengs[0][i]==inf)lengs[0][i]=1.0;
+		if(lengs[0][i]==inf)continue;
 		color=(color*0.3+colors[0][i])*(1.0-lengs[0][i]/10000)+vec4(1,1,1,1)*lengs[0][i]/10000;
 		//if(lengs[0][i]<10000)
 		//color=color+vec4(1,1,abs(sin(1+(lengs[2][i]))),0);
