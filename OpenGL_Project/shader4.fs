@@ -40,12 +40,12 @@ bool isBoxIntersect( in vec3 rayOrigin, in vec3 rayDirection,in vec3 boxSize, ou
 	vec3 t2 = -n + k;
 	toNear = max( max( t1.x, t1.y ), t1.z );
 	toFar = min( min( t2.x, t2.y ), t2.z );
-	if( toNear>=toFar || toFar<0.0 || toNear<0.0) return false;
+	if( toNear>toFar || toFar<0.0 || toNear<0.0) return false;
 	outNormal = -sign(rayDirection)*step(t1.yzx,t1.xyz)*step(t1.zxy,t1.xyz);
 	return true;
 }
 
-bool isTriIntersect( in vec3 rayOrigin, in vec3 rayDirection, in vec3 v0, in vec3 v1, in vec3 v2,out vec3 ans )
+bool isTriIntersect( in vec3 rayOrigin, in vec3 rayDirection, in vec3 v0, in vec3 v1, in vec3 v2,out float ans )
 {
 	if(dot(v0-rayOrigin,rayDirection)<0&&dot(v1-rayOrigin,rayDirection)<0&&dot(v2-rayOrigin,rayDirection)<0)return false;
     vec3 v01 = v1 - v0;
@@ -58,54 +58,56 @@ bool isTriIntersect( in vec3 rayOrigin, in vec3 rayDirection, in vec3 v0, in vec
     float v = d*dot(  q, v01 );
     float t = d*dot( -normal0, rayOrigin0 );
     if( u<0.0 || u>1.0 || v<0.0 || (u+v)>1.0 ) return false;
-	t=dot(v0-rayOrigin,rayDirection);
-	ans =  vec3( t, u, v );
+	//t=dot(v0-rayOrigin,rayDirection);
+	//ans =  vec3( t, u, v );
+	ans = t;
     return true;
 }
-
+vec3 rotate(vec3 inpt,vec2 rx,vec2 ry,vec2 rz)
+{
+	inpt = inpt*mat3(
+		rx.x,rx.y,0,
+		-rx.y,rx.x,0,
+		0,0,1
+	);
+	inpt = inpt*mat3(
+		ry.x,0,ry.y,
+		0,1,0,
+		-ry.y,0,ry.x
+	);
+	return(inpt*mat3(
+		1,0,0,
+		0,rz.x,rz.y,
+		0,-rz.y,rz.x
+	));
+}
+vec3 unrotate(vec3 inpt,vec2 rx,vec2 ry,vec2 rz)
+{
+	inpt=inpt*mat3(
+		1,0,0,
+		0,rz.x,-rz.y,
+		0,rz.y,rz.x
+	);
+	inpt = inpt*mat3(
+		ry.x,0,-ry.y,
+		0,1,0,
+		ry.y,0,ry.x
+	);
+	return(inpt*mat3(
+		rx.x,-rx.y,0,
+		rx.y,rx.x,0,
+		0,0,1
+	));
+}
 bool getBoxClr1(in vec3 me,in vec3 lookTo,in vec3 boxSize,in vec4 boxRotxy,in vec2 boxRotz, in vec3 boxOrigin, out float len, out vec3 norm)
 {
 	me = me-boxOrigin;
-	vec2 rmxx,rmxy,rmxz;
-	rmxx=boxRotxy.xy;
-	rmxy=boxRotxy.zw;
-	rmxz=boxRotz;
-	mat3 rmxsum;
-	rmxsum=mat3(
-		rmxx.x,rmxx.y,0,
-		-rmxx.y,rmxx.x,0,
-		0,0,1
-	)
-	*mat3(
-		rmxy.x,0,rmxy.y,
-		0,1,0,
-		-rmxy.y,0,rmxy.x
-	)
-	*mat3(
-		1,0,0,
-		0,rmxz.x,rmxz.y,
-		0,-rmxz.y,rmxz.x
-	);
-	me=me*rmxsum;
-	lookTo=lookTo*rmxsum;
+	me=rotate(me,boxRotxy.xy,boxRotxy.zw,boxRotz);
+	lookTo=rotate(lookTo,boxRotxy.xy,boxRotxy.zw,boxRotz);
 	bool ans;
 	ans = isBoxIntersect(me,lookTo,boxSize,norm,len);
 	if(ans==false) return false;
-	norm = norm*mat3(
-		rmxx.x,-rmxx.y,0,
-		rmxx.y,rmxx.x,0,
-		0,0,1
-	)
-	*mat3(
-		rmxy.x,0,-rmxy.y,
-		0,1,0,
-		rmxy.y,0,rmxy.x
-	)
-	*mat3(
-		1,0,0,
-		0,rmxz.x,-rmxz.y,
-		0,rmxz.y,rmxz.x
-	);
+	norm = unrotate(norm,boxRotxy.xy,boxRotxy.zw,boxRotz);
 	return true;
 }
 bool getBoxClr(in vec3 me,in vec3 lookTo,out float len, out vec3 norm,out vec4 color)
@@ -133,7 +135,6 @@ bool getBoxClr(in vec3 me,in vec3 lookTo,out float len, out vec3 norm,out vec4 c
 			len=lenNow;
 			iNow=i;
 			normAns=norm;
-			color = normalize(sphs3);
 			//color = vec4(0,0,1,1);
 		}
 		else
@@ -144,9 +145,10 @@ bool getBoxClr(in vec3 me,in vec3 lookTo,out float len, out vec3 norm,out vec4 c
 	}
 	
 	//len = 100;
-	
-	norm=normAns;
 	if (len>1000000000000000000.0) return false;
+	//normAns=normAns*sign(-dot(normAns,lookTo));
+	norm=normAns;
+	color = vec4(normalize(texelFetch(Content,ivec2(iNow+0,0),0).xyz),0);
 	return true;
 
 }
@@ -217,13 +219,13 @@ bool RTX(in vec3 me,in vec3 lookTo,  out vec4 color)
 	vec4 colors[4][4];
 	float lengs[4][4];
 	vec3 norm[4];
-	vec3 triAns;
+	//vec3 triAns;
 	int j =0;
 	//colors[2][0]=vec4(1,0,1,1);
 	for(int i = 0;i<4;++i)
 	{
 		lengs[0][i]=1000000000000000000000.0;
-		if(getSphClr(me,lookTo,lengs[1][i],colors[1][i],norm[1]))
+		if(getSphClr(me,lookTo,lengs[1][i],colors[1][i],norm[1])) 
 		{
 			++j;
 			//in vec3 me,in vec3 lookTo,in vec3 boxSize,in vec3 boxRot, in vec3 boxOrigin, out float len,out vec3 norm)
@@ -242,10 +244,10 @@ bool RTX(in vec3 me,in vec3 lookTo,  out vec4 color)
 			lengs[2][i]=1000000000000000000000.0;
 		}
 		
-		if(isTriIntersect(me,lookTo,vec3(-100,-100,-75),vec3(-20,-130,-80),vec3(-170,-110,-75),triAns))
+		if(isTriIntersect(me,lookTo,vec3(-100,-100,-75),vec3(-20,-130,-80),vec3(-170,-110,-75),lengs[3][i]))
 		{
 			++j;
-			lengs[3][i]=1/triAns.x;
+			//lengs[3][i]=1/triAns.x;
 			colors[3][i]= vec4(0,1,1,1);
 			norm[3]=normalize(vec3(1,1,1));
 		}
@@ -272,6 +274,8 @@ bool RTX(in vec3 me,in vec3 lookTo,  out vec4 color)
 			colors[0][i]=colors[3][i];
 			norm[0]=norm[3];
 		}
+		//lengs[0][i]=lengs[0][i]-0.1;
+		norm[0]=norm[0]*sign(-dot(norm[0],lookTo));
 		me = me+lookTo*lengs[0][i];
 		lookTo = reflect(lookTo,norm[0]);
 	}

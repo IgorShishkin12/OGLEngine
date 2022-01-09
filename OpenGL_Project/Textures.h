@@ -105,10 +105,10 @@ public:
 		glUniform2i(ID_sizeSph, sph0.size, sizey);
 		glUniform2i(ID_sizeSphes, 0, spheresSize);
 		glUniform2i(ID_sizeBoxes, spheresSize+1, boxesSize + spheresSize+1);
-		for (auto q : out)
-		{
-			cout << q << "\n";
-		}
+		//for (auto q : out)
+		//{
+		//	cout << q << "\n";
+		//}
 	}
 	void sendData()
 	{
