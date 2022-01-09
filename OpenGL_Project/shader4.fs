@@ -12,6 +12,7 @@ uniform ivec2 SphBeg_to_End;
 uniform ivec2 BoxBeg_to_End;
 uniform sampler2D Content;
 uniform sampler2D ColorsTex;
+const float inf = abs(1.0/0.0);
 
 bool isSphereIntersect( in vec3 rayOrigin, in vec3 rayDirection, in vec3 center, in float radius, out float distance1,out float distance2 )
 {
@@ -29,9 +30,7 @@ bool isSphereIntersect( in vec3 rayOrigin, in vec3 rayDirection, in vec3 center,
  
 bool isBoxIntersect( in vec3 rayOrigin, in vec3 rayDirection,in vec3 boxSize, out vec3 outNormal,out float toNear) 
 {
-	//boxSize = vec3(10,10,10);
-	if(dot(rayDirection,-rayOrigin)<0)
-		return false;
+
 	float toFar;
 	vec3 m = 1.0/rayDirection;
 	vec3 n = m*rayOrigin;
@@ -114,7 +113,7 @@ bool getBoxClr(in vec3 me,in vec3 lookTo,out float len, out vec3 norm,out vec4 c
 {
 	//return true;
 	vec4 sphs1,sphs2,sphs3;
-	float lenNow = 1000000000000000000000.0;
+	float lenNow = inf;
 	len = lenNow;
 	vec3 normAns;
 	int iNow = BoxBeg_to_End.x;
@@ -145,7 +144,7 @@ bool getBoxClr(in vec3 me,in vec3 lookTo,out float len, out vec3 norm,out vec4 c
 	}
 	
 	//len = 100;
-	if (len>1000000000000000000.0) return false;
+	if (len==inf) return false;
 	//normAns=normAns*sign(-dot(normAns,lookTo));
 	norm=normAns;
 	color = vec4(normalize(texelFetch(Content,ivec2(iNow+0,0),0).xyz),0);
@@ -177,7 +176,7 @@ void getPosition(out vec3 me,out vec3 lookTo)
 bool getSphClr(in vec3 me,in vec3 lookTo, out float len, out vec4 color,out vec3 normal)
 {
 	vec4 sphs1,sphs2;
-	float distan1,distan2,radiusSph,lenNow = 1000000000000000000000.0;
+	float distan1,distan2,radiusSph,lenNow = inf;
 	len = lenNow;
 	vec3 sphCen;
 	int iNow = SphBeg_to_End.x;
@@ -207,7 +206,7 @@ bool getSphClr(in vec3 me,in vec3 lookTo, out float len, out vec4 color,out vec3
 			iNow = i;
 		}
 	}
-	if (len>10000000.0) return false;
+	if (len==inf) return false;
 	color = normalize(vec4(texelFetch(Content,ivec2(iNow+1,0),0).xyz,1.0));
 	normal = sphN(texelFetch(Content,ivec2(iNow,0),0).yzw,me,lookTo,len);
 	return true;
@@ -224,7 +223,7 @@ bool RTX(in vec3 me,in vec3 lookTo,  out vec4 color)
 	//colors[2][0]=vec4(1,0,1,1);
 	for(int i = 0;i<4;++i)
 	{
-		lengs[0][i]=1000000000000000000000.0;
+		lengs[0][i]=inf;
 		if(getSphClr(me,lookTo,lengs[1][i],colors[1][i],norm[1])) 
 		{
 			++j;
@@ -232,7 +231,7 @@ bool RTX(in vec3 me,in vec3 lookTo,  out vec4 color)
 		}
 		else
 		{
-			lengs[1][i]=1000000000000000000000.0;
+			lengs[1][i]=inf;
 
 		}
 		if(getBoxClr(me,lookTo,lengs[2][i],norm[2],colors[2][i]))
@@ -241,7 +240,7 @@ bool RTX(in vec3 me,in vec3 lookTo,  out vec4 color)
 		}
 		else
 		{
-			lengs[2][i]=1000000000000000000000.0;
+			lengs[2][i]=inf;
 		}
 		
 		if(isTriIntersect(me,lookTo,vec3(-100,-100,-75),vec3(-20,-130,-80),vec3(-170,-110,-75),lengs[3][i]))
@@ -253,7 +252,7 @@ bool RTX(in vec3 me,in vec3 lookTo,  out vec4 color)
 		}
 		else
 		{
-			lengs[3][i]=1000000000000000000000.0;
+			lengs[3][i]=inf;
 		}
 		
 		if(lengs[0][i]>=lengs[2][i])
@@ -274,6 +273,7 @@ bool RTX(in vec3 me,in vec3 lookTo,  out vec4 color)
 			colors[0][i]=colors[3][i];
 			norm[0]=norm[3];
 		}
+		if(lengs[0][i]==inf)break;
 		//lengs[0][i]=lengs[0][i]-0.1;
 		norm[0]=norm[0]*sign(-dot(norm[0],lookTo));
 		me = me+lookTo*lengs[0][i];
@@ -284,6 +284,7 @@ bool RTX(in vec3 me,in vec3 lookTo,  out vec4 color)
 	for (int i = j-1;i>-1;--i)
 	{
 		//i=2;
+		if(lengs[0][i]==inf)lengs[0][i]=1.0;
 		color=(color*0.3+colors[0][i])*(1.0-lengs[0][i]/10000)+vec4(1,1,1,1)*lengs[0][i]/10000;
 		//if(lengs[0][i]<10000)
 		//color=color+vec4(1,1,abs(sin(1+(lengs[2][i]))),0);
