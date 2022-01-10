@@ -32,7 +32,7 @@ bool isBoxIntersect( in vec3 rayOrigin, in vec3 rayDirection,in vec3 boxSize, ou
 {
 
 	float toFar;
-	vec3 m = 1.0/rayDirection;
+	vec3 m = 1.0/rayDirection;//непонятная часть это непереводимая игра слов вследствие рефакторинга
 	vec3 n = m*rayOrigin;
 	vec3 k = abs(m)*boxSize;
 	vec3 t1 = -n - k;
@@ -44,13 +44,13 @@ bool isBoxIntersect( in vec3 rayOrigin, in vec3 rayDirection,in vec3 boxSize, ou
 	return true;
 }
 
-bool isTriIntersect( in vec3 rayOrigin, in vec3 rayDirection, in vec3 v0, in vec3 v1, in vec3 v2,out float ans )
+bool isTriIntersect( in vec3 rayOrigin, in vec3 rayDirection, in vec3 v0, in vec3 v1, in vec3 v2,out float ans,out vec3 normal0 )
 {
 	if(dot(v0-rayOrigin,rayDirection)<0&&dot(v1-rayOrigin,rayDirection)<0&&dot(v2-rayOrigin,rayDirection)<0)return false;
     vec3 v01 = v1 - v0;
     vec3 v02 = v2 - v0;
     vec3 rayOrigin0 =rayOrigin - v0;
-    vec3 normal0 = cross( v01, v02 );
+    normal0 = cross( v01, v02 );
     vec3  q = cross( rayOrigin0, rayDirection );
     float d = 1.0/dot( rayDirection,normal0 );
     float u = d*dot( -q, v02 );
@@ -243,12 +243,12 @@ bool RTX(in vec3 me,in vec3 lookTo,  out vec4 color)
 			lengs[2][i]=inf;
 		}
 		
-		if(isTriIntersect(me,lookTo,vec3(-100,-100,-75),vec3(-20,-130,-80),vec3(-170,-110,-75),lengs[3][i]))
+		if(isTriIntersect(me,lookTo,vec3(-100,-100,-75),vec3(-20,-130,-80),vec3(-170,-110,-75),lengs[3][i],norm[3]))
 		{
 			++j;
 			//lengs[3][i]=1/triAns.x;
 			colors[3][i]= vec4(0,1,1,1);
-			norm[3]=normalize(vec3(1,1,1));
+			//norm[3]=normalize(vec3(1,1,1));
 		}
 		else
 		{

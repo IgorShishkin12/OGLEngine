@@ -151,6 +151,7 @@
   <ItemGroup>
     <ClInclude Include="Box.h" />
     <ClInclude Include="Matrix.h" />
+    <ClInclude Include="Polygon.h" />
     <ClInclude Include="Shader.h" />
     <ClInclude Include="Sphere.h" />
     <ClInclude Include="stb_image.h" />
