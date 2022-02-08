@@ -13,7 +13,7 @@ uniform ivec2 BoxBeg_to_End;
 uniform sampler2D Content;
 uniform sampler2D ColorsTex;
 const float inf = abs(1.0/0.0);
-
+out vec4 out_gl_FragColor;
 bool isSphereIntersect( in vec3 rayOrigin, in vec3 rayDirection, in vec3 center, in float radius, out float distance1,out float distance2 )
 {
 	vec3  originCenter = rayOrigin - center;
@@ -302,11 +302,11 @@ void main()
 	getPosition(me,ecran);
 	if(RTX(me,ecran,clr))
 	{
-		gl_FragColor = clr;
+		out_gl_FragColor = clr;
 	}
 	else
 	{
-		gl_FragColor = vec4(normalize(vec3(2.0,1.0,0.0)),1.0);
+		out_gl_FragColor = vec4(normalize(vec3(2.0,1.0,0.0)),1.0);
 	}
 }
 
