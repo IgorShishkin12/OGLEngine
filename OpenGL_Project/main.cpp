@@ -118,6 +118,7 @@ int main()
 	vec2[1] = Box{ 7,80,90,10,7,50,1 / 9,1 / 1,1 / 8 };
 	Textures tex(ourShader, vec2, vec);
 	tex.makeOut();
+	tex.sendColors();
 	tex.send();
 
 	while (!glfwWindowShouldClose(window))

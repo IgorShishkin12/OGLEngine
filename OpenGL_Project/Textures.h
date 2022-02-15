@@ -42,16 +42,7 @@ public:
 	std::vector<Sphere> spheres;
 	Textures(ShProg sdr,std::vector<Box> bs,std::vector<Sphere> ss):
 		boxes{bs},spheres{ss},ourShader{sdr}
-	{
-		glGenTextures(1, &ID_texDataSph);
-		glBindTexture(GL_TEXTURE_2D, ID_texDataSph);
-		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);//см ниже
-		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);//пиксель на всей области одного цвета
-		glGenTextures(1, &ID_texColor);
-		glBindTexture(GL_TEXTURE_2D, ID_texDataSph);
-		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);//см ниже
-		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);//пиксель на всей области одного цвета
-	}
+	{}
 	void setColors()
 	{
 		for (auto i : colorSph)
@@ -93,15 +84,31 @@ public:
 	}
 	void sendColors()
 	{
-
+		glGenTextures(1, &ID_texDataSph);
 		glBindTexture(GL_TEXTURE_2D, ID_texDataSph);
-		glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA32F, colorOut.size(), 1, 0, GL_RGBA, GL_FLOAT, &colorOut[0]);                  //gl_rgba32f ненормализует
+		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);//см ниже
+		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);//пиксель на всей области одного цвета
 
+		glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA32F, out.size(), sizey, 0, GL_RGBA, GL_FLOAT, &out[0]);
+		glGenTextures(1, &ID_texColor);
+		glBindTexture(GL_TEXTURE_2D, ID_texColor);
+		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);//см ниже
+		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);//пиксель на всей области одного цвета
+
+		glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA32F, 1, 1, 0, GL_RGBA, GL_FLOAT, &out[0]);
+
+		glUniform1i(glGetUniformLocation(ourShader.getID(), "Content"), 0);
+		glUniform1i(glGetUniformLocation(ourShader.getID(), "ColorsTex"), 1);
 	}
 	void send()
 	{
+
+		glActiveTexture(GL_TEXTURE0);
 		glBindTexture(GL_TEXTURE_2D, ID_texDataSph);
-		glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA32F, out.size(), sizey, 0, GL_RGBA, GL_FLOAT, &out[0]);                  //gl_rgba32f ненормализует
+		glActiveTexture(GL_TEXTURE1);
+		glBindTexture(GL_TEXTURE_2D, ID_texColor);
+
+
 		glUniform2i(ID_sizeSph, sph0.size, sizey);
 		glUniform2i(ID_sizeSphes, 0, spheresSize);
 		glUniform2i(ID_sizeBoxes, spheresSize+1, boxesSize + spheresSize+1);
