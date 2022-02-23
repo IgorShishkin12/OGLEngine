@@ -12,6 +12,7 @@ uniform ivec2 SphBeg_to_End;
 uniform ivec2 BoxBeg_to_End;
 uniform sampler2D Content;
 uniform sampler2D ColorsTex;
+uniform sampler2DArray texture_array;//88ff штук максимум
 const float inf = abs(1.0/0.0);
 out vec4 out_gl_FragColor;
 bool isSphereIntersect( in vec3 rayOrigin, in vec3 rayDirection, in vec3 center, in float radius, out float distance1,out float distance2 )
@@ -267,7 +268,7 @@ bool RTX(in vec3 me,in vec3 lookTo,  out vec4 color)
 			colors[0][i]=colors[1][i];
 			norm[0]=norm[1];
 		}
-		if(lengs[0][i]>lengs[3][i])
+		if(lengs[0][i]> lengs[3][i])
 		{
 			lengs[0][i]=lengs[3][i];
 			colors[0][i]=colors[3][i];
@@ -306,7 +307,12 @@ void main()
 	}
 	else
 	{
-		out_gl_FragColor = vec4(normalize(vec3(2.0,1.0,0.0)),1.0);
+		//out_gl_FragColor = vec4(normalize(vec3(2.0,1.0,0.0)),1.0);
+		vec4 clr2 = texelFetch(texture_array,ivec3(0,0,0),0);
+		//if(out_gl_FragColor==vec4(0,0,0,0))
+		
+		out_gl_FragColor = vec4(normalize(vec3(2.0,1.0,sin(clr2.x))),1.0);
 	}
 }
 
+ 

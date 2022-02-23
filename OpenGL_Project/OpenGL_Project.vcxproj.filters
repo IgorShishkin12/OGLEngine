@@ -52,25 +52,25 @@
     </ClInclude>
   </ItemGroup>
   <ItemGroup>
-    <None Include="shader3.vs">
+    <None Include="shader3.vert">
       <Filter>shaders2</Filter>
     </None>
-    <None Include="shader4.fs">
+    <None Include="shader4.frag">
       <Filter>shaders2</Filter>
     </None>
-    <None Include="shader2.fs">
+    <None Include="shader2.frag">
       <Filter>shaders2</Filter>
     </None>
-    <None Include="shader1.vs">
+    <None Include="shader1.vert">
       <Filter>shaders2</Filter>
     </None>
-    <None Include="shader5.fs">
+    <None Include="shader5.frag">
       <Filter>shaders2</Filter>
     </None>
-    <None Include="shader6.vs">
+    <None Include="shader6.vert">
       <Filter>shaders2\testShaders</Filter>
     </None>
-    <None Include="shader7.fs">
+    <None Include="shader7.frag">
       <Filter>shaders2\testShaders</Filter>
     </None>
   </ItemGroup>

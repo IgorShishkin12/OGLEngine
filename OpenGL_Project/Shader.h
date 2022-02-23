@@ -33,10 +33,10 @@ public:
 		if (Path.find('/') == string::npos || Path.find('\\') == string::npos)
 		{
 
-			char current_work_dir[FILENAME_MAX];
+			/*char current_work_dir[FILENAME_MAX];
 			_getcwd(current_work_dir, sizeof(current_work_dir));
+			Path = current_work_dir;/**/
 			string t_path = Path;
-			Path = current_work_dir;
 			/******напишу путь ручеуми если что закоментить*******************/
 			Path = "C:\\Users\\shishkin_i\\source\\repos\\OpenGL_Project\\OpenGL_Project";
 			/*************************************************************/
@@ -54,7 +54,7 @@ public:
 		m_file.close();
 		m_shader += "\0";
 		//cout<<m_shader;
-		m_type = m_path[m_path.size() - 2]; //.vs for vertex shader, .fs for fragment shader
+		m_type = m_path[m_path.size() - 4]; //.vs for vertex shader, .fs for fragment shader
 		if (m_type == 'v')
 		{
 			vertexShaderInit();

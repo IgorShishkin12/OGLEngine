@@ -158,13 +158,13 @@
     <ClInclude Include="Textures.h" />
   </ItemGroup>
   <ItemGroup>
-    <None Include="shader1.vs" />
-    <None Include="shader2.fs" />
-    <None Include="shader3.vs" />
-    <None Include="shader4.fs" />
-    <None Include="shader5.fs" />
-    <None Include="shader6.vs" />
-    <None Include="shader7.fs" />
+    <None Include="shader1.vert" />
+    <None Include="shader2.frag" />
+    <None Include="shader3.vert" />
+    <None Include="shader4.frag" />
+    <None Include="shader5.frag" />
+    <None Include="shader6.vert" />
+    <None Include="shader7.frag" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">
