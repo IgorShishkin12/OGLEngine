@@ -56,7 +56,7 @@ int main()
 	Shader sh1("shader3.vert");
 	Shader sh2("shader4.frag");
 	ShProg ourShader{ sh1,sh2 };
-
+	ourShader.use();
 	// Указание вершин (и буфера(ов)) и настройка вершинных атрибутов
 	float vertices[] = {
 		// координаты        // цвета            // текстурные координаты

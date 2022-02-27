@@ -91,16 +91,14 @@ public:
 		//временно:
 		colorOut.resize(1);
 
-
-		//glActiveTexture(GL_TEXTURE0);
+		glActiveTexture(GL_TEXTURE0);
 		glGenTextures(1, &ID_texDataSph);
 		glBindTexture(GL_TEXTURE_2D, ID_texDataSph);
 		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);//см ниже
 		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);//пиксель на всей области одного цвета
-
 		glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA32F, out.size(), sizey, 0, GL_RGBA, GL_FLOAT, &out[0]);
 
-		//glActiveTexture(GL_TEXTURE1);
+		glActiveTexture(GL_TEXTURE1);
 		glGenTextures(1, &ID_texColor);
 		glBindTexture(GL_TEXTURE_2D, ID_texColor);
 		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);//см ниже
@@ -110,61 +108,74 @@ public:
 			cout << "colorOut is empty\n";
 			colorOut.push_back(0.0);
 		}
-		glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA32F, 1, 1, 0, GL_RGBA, GL_FLOAT, &colorOut[0]);
-
+		float arr2[8]{ 0.1,0.2,0.3,0.4,0.0,0.0,0.0,0.8 };
+		glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA32F, 1, 2, 0, GL_RGBA, GL_FLOAT, arr2);
 		glUniform1i(glGetUniformLocation(ourShader.getID(), "Content"), 0);
 		glUniform1i(glGetUniformLocation(ourShader.getID(), "ColorsTex"), 1);
+
+
 	}
-		GLuint texture = 0;
+		GLuint texture;
 	void texarr()
 	{
-
-		GLsizei width = 2;
-		GLsizei height = 2;
-		GLsizei layerCount = 2;
-		GLsizei mipLevelCount = 1;
-
-		// Read you texels here. In the current example, we have 2*2*2 = 8 texels, with each texel being 4 GLubytes.
 		float texels[32] =
 		{
 
-			0.1,0.2,0.3, 0.4,
-			0.5,0,0, 255,
-			0,0,0, 255,
-			0,0,0, 255,
-
-			0,0,0, 255,
-			0,0,0, 255,
-			0,0,0, 255,
-			0,0,0, 255
+0.9879,	0.2128, 0.5376,	0.0735,
+0.0478,	0.9165,0.8748,	0.0358,
+0.4566,	0.3258,0.3934,	0.7363,
+0.0639,	0.6707,0.8550,	0.8131,
+0.0259,	0.8566,0.2673,	0.6458,
+0.3680,	0.8245,0.2727,	0.0121,
+0.3627,	0.1939,0.1525,	0.1523,
+0.8642,	0.9577,0.2093,	0.4590
 
 
 		};
-		float texelso[32]{ 0 };
 
-		//glActiveTexture(GL_TEXTURE2);
+		glUniform1i(10, 3);
+		//glActiveTexture(GL_TEXTURE1);
+		//glActiveTexture(GL_TEXTURE3);
+		//float ans;
+		//glGetFloatv(GL_ACTIVE_TEXTURE, &ans);
+		//cout << "texnow" << ans << "\n";
 		glGenTextures(1, &texture);
-		glBindTexture(GL_TEXTURE_2D_ARRAY, texture);
-		// Allocate the storage.
-		glTexImage3D(GL_TEXTURE_2D_ARRAY, 0, GL_RGBA, 1, 1, 1, 0, GL_RGBA, GL_FLOAT, texels);
-		// Upload pixel data.
-		// The first 0 refers to the mipmap level (level 0, since there's only 1)
-		// The following 2 zeroes refers to the x and y offsets in case you only want to specify a subrectangle.
-		// The final 0 refers to the layer index offset (we start from index 0 and have 2 levels).
-		// Altogether you can specify a 3D box subset of the overall texture, but only one mip level at a time.
-		//glTexSubImage3D(GL_TEXTURE_2D_ARRAY, 0, 0, 0, 0, 2, 2, 2, GL_RGBA, GL_FLOAT, texels);
-		
+		glBindTexture(GL_TEXTURE_3D, texture);
+		glTexParameteri(GL_TEXTURE_3D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);//см ниже
+		glTexParameteri(GL_TEXTURE_3D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);//пиксель на всей области одного цвета
+		glTexImage3D(GL_TEXTURE_3D, 0, GL_RGBA8, 2, 2, 2, 0, GL_RGBA, GL_FLOAT, texels);
+
+		//GLsizei width = 2;
+		//GLsizei height = 2;
+		//GLsizei layerCount = 2;
+		//GLsizei mipLevelCount = 1;
+
+		//// Read you texels here. In the current example, we have 2*2*2 = 8 texels, with each texel being 4 GLubytes.
+		//float texelso[32]{ 0 };
+
+		////glActiveTexture(GL_TEXTURE2);
+		//glGenTextures(1, &texture);
+		//glBindTexture(GL_TEXTURE_2D_ARRAY, texture);
+		//// Allocate the storage.
+		//glTexImage3D(GL_TEXTURE_2D_ARRAY, 0, GL_RGBA, 1, 1, 1, 0, GL_RGBA, GL_FLOAT, texels);
+		//// Upload pixel data.
+		//// The first 0 refers to the mipmap level (level 0, since there's only 1)
+		//// The following 2 zeroes refers to the x and y offsets in case you only want to specify a subrectangle.
+		//// The final 0 refers to the layer index offset (we start from index 0 and have 2 levels).
+		//// Altogether you can specify a 3D box subset of the overall texture, but only one mip level at a time.
+		////glTexSubImage3D(GL_TEXTURE_2D_ARRAY, 0, 0, 0, 0, 2, 2, 2, GL_RGBA, GL_FLOAT, texels);
+		//
 
 
-		// Always set reasonable texture parameters
-		glTexParameteri(GL_TEXTURE_2D_ARRAY, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
-		glTexParameteri(GL_TEXTURE_2D_ARRAY, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
-		glTexParameteri(GL_TEXTURE_2D_ARRAY, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
-		glTexParameteri(GL_TEXTURE_2D_ARRAY, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
-		cout << glGetUniformLocation(ourShader.getID(), "texture_array") << "\n";
-		glUniform1i(glGetUniformLocation(ourShader.getID(), "texture_array"), GL_TEXTURE_2D_ARRAY-GL_TEXTURE0);
-		//glActiveTexture(GL_TEXTURE2);
-		glBindTexture(GL_TEXTURE_2D_ARRAY, texture);
+		//// Always set reasonable texture parameters
+		//glTexParameteri(GL_TEXTURE_2D_ARRAY, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
+		//glTexParameteri(GL_TEXTURE_2D_ARRAY, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
+		//glTexParameteri(GL_TEXTURE_2D_ARRAY, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
+		//glTexParameteri(GL_TEXTURE_2D_ARRAY, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
+		//cout << glGetUniformLocation(ourShader.getID(), "texture_array") << "\n";
+		//glUniform1i(glGetUniformLocation(ourShader.getID(), "texture_array"), GL_TEXTURE_2D_ARRAY-GL_TEXTURE0);
+		////glActiveTexture(GL_TEXTURE2);
+		//glBindTexture(GL_TEXTURE_2D_ARRAY, texture);
 	}
 	template<class  cl1,int len>
 	void testData(GLenum target)
@@ -189,13 +200,16 @@ public:
 	//}
 	void send()
 	{
-		testData<float, 8>(GL_TEXTURE_2D_ARRAY);
-		glActiveTexture(GL_TEXTURE0);
-		glBindTexture(GL_TEXTURE_2D, ID_texDataSph);
+
+
+
+		testData<float, 32>(GL_TEXTURE_3D);
 		glActiveTexture(GL_TEXTURE1);
 		glBindTexture(GL_TEXTURE_2D, ID_texColor);
-		glActiveTexture(GL_TEXTURE_2D_ARRAY);
-		glBindTexture(GL_TEXTURE_2D_ARRAY,texture );
+		glActiveTexture(GL_TEXTURE0);
+		glBindTexture(GL_TEXTURE_2D, ID_texDataSph);
+		glActiveTexture(GL_TEXTURE3);
+		glBindTexture(GL_TEXTURE_3D,texture );
 
 		glUniform2i(ID_sizeSph, sph0.size, sizey);
 		glUniform2i(ID_sizeSphes, 0, spheresSize);

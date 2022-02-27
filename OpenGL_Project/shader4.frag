@@ -8,14 +8,14 @@ precision mediump float;
 #endif
 
 vec2 u_resolution=vec2(600.0,800.0);
-uniform vec3 me1;
-uniform vec4 mouse;
-uniform ivec2 sizeSph;
-uniform ivec2 SphBeg_to_End;
-uniform ivec2 BoxBeg_to_End;
-layout (location = 1882) uniform sampler2DArray texture_array;//88ff штук максимум
-uniform sampler2D Content;
-uniform sampler2D ColorsTex;
+layout (location = 100) uniform vec3 me1;
+layout (location = 101) uniform vec4 mouse;
+layout (location = 102)uniform ivec2 sizeSph;
+layout (location = 103)uniform ivec2 SphBeg_to_End;
+layout (location = 104)uniform ivec2 BoxBeg_to_End;
+layout (location = 10) uniform sampler3D texture_array;//88ff штук максимум
+layout (location = 8)uniform sampler2D Content;
+layout (location = 9)uniform sampler2D ColorsTex;
 const float inf = abs(1.0/0.0);
 out vec4 out_gl_FragColor;
 bool isSphereIntersect( in vec3 rayOrigin, in vec3 rayDirection, in vec3 center, in float radius, out float distance1,out float distance2 )
@@ -312,13 +312,13 @@ void main()
 	{
 		vec4 clr2=vec4(0,0,0,0);
 		//out_gl_FragColor = vec4(normalize(vec3(2.0,1.0,0.0)),1.0);
-		clr2 = texelFetch(texture_array,ivec3(0,0,0),0);
+		clr2 = texelFetch(texture_array,ivec3(1,1,0),0);
 		//clr2 = texture2DArray(texture_array, vec3(0,0,0));
-		if(clr2 == vec4(0.1,0.2,0.3,0.4))
+		if(clr2 == vec4(0.1,0.2,0.3,0.8))
 		clr2 = vec4(1,0,0,1);
 		else
-		clr2 = vec4(0,1,0,1);
-		//clr2 = vec4(0,0,1,1);
+		clr2 = clr2;
+		//clr2 = vec4(0,1,0,1);
 		//if(out_gl_FragColor==vec4(0,0,0,0))
 		
 		out_gl_FragColor = vec4(normalize(vec3(clr2.xyz)),1.0);
