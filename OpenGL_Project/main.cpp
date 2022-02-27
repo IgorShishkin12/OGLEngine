@@ -53,8 +53,8 @@ int main()
 	}
 
 	// Компилирование нашей шейдерной программы
-	Shader sh1("shader3.vs");
-	Shader sh2("shader4.fs");
+	Shader sh1("shader3.vert");
+	Shader sh2("shader4.frag");
 	ShProg ourShader{ sh1,sh2 };
 
 	// Указание вершин (и буфера(ов)) и настройка вершинных атрибутов

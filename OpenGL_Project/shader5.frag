@@ -1,6 +1,5 @@
 #ifdef GL_ES
 precision mediump float;
-
 #endif
 
 vec2 u_resolution=vec2(600.0,800.0);

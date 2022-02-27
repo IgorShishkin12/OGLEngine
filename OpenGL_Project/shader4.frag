@@ -1,7 +1,10 @@
+
 #version 460 core
+//#extension GL_EXT_texture_array : enable
+//#extension GL_NV_texture_array : enable
+
 #ifdef GL_ES
 precision mediump float;
-
 #endif
 
 vec2 u_resolution=vec2(600.0,800.0);
@@ -10,9 +13,9 @@ uniform vec4 mouse;
 uniform ivec2 sizeSph;
 uniform ivec2 SphBeg_to_End;
 uniform ivec2 BoxBeg_to_End;
+layout (location = 1882) uniform sampler2DArray texture_array;//88ff штук максимум
 uniform sampler2D Content;
 uniform sampler2D ColorsTex;
-uniform sampler2DArray texture_array;//88ff штук максимум
 const float inf = abs(1.0/0.0);
 out vec4 out_gl_FragColor;
 bool isSphereIntersect( in vec3 rayOrigin, in vec3 rayDirection, in vec3 center, in float radius, out float distance1,out float distance2 )
@@ -307,11 +310,18 @@ void main()
 	}
 	else
 	{
+		vec4 clr2=vec4(0,0,0,0);
 		//out_gl_FragColor = vec4(normalize(vec3(2.0,1.0,0.0)),1.0);
-		vec4 clr2 = texelFetch(texture_array,ivec3(0,0,0),0);
+		clr2 = texelFetch(texture_array,ivec3(0,0,0),0);
+		//clr2 = texture2DArray(texture_array, vec3(0,0,0));
+		if(clr2 == vec4(0.1,0.2,0.3,0.4))
+		clr2 = vec4(1,0,0,1);
+		else
+		clr2 = vec4(0,1,0,1);
+		//clr2 = vec4(0,0,1,1);
 		//if(out_gl_FragColor==vec4(0,0,0,0))
 		
-		out_gl_FragColor = vec4(normalize(vec3(2.0,1.0,sin(clr2.x))),1.0);
+		out_gl_FragColor = vec4(normalize(vec3(clr2.xyz)),1.0);
 	}
 }
 
