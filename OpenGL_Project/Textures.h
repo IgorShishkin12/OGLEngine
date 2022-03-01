@@ -29,9 +29,6 @@ class Textures
 	Sphere sph0;
 	Box box0;
 	unsigned int id = 0;
-	unsigned int ID_texDataSph{ 0 };
-	unsigned int ID_texColor{ 0 };
-	unsigned int texture_array{0};
 
 	unsigned int idArr[32]{ 0 };
 	unsigned int locArr[32]{ 0 };
@@ -153,28 +150,12 @@ public:
 
 		setloc("Content");
 		createTex(GL_TEXTURE_2D, GL_RGBA32F, out.size(), sizey);
-		insDataTex<float,2>(0, &out[0],out.size(), sizey);
-		//glActiveTexture(GL_TEXTURE0+id);
-		//glGenTextures(1, &(idArr[id]));
-		//glBindTexture(GL_TEXTURE_2D, idArr[id]);
-		//glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);//см ниже
-		//glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);//пиксель на всей области одного цвета
-		//glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA32F, out.size(), sizey, 0, GL_RGBA, GL_FLOAT, &out[0]);
+		insDataTex<float, 2>(id-1, &out[0], out.size(), sizey);
 
-		glActiveTexture(GL_TEXTURE1);
-		glGenTextures(1, &ID_texColor);
-		glBindTexture(GL_TEXTURE_2D, ID_texColor);
-		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);//см ниже
-		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);//пиксель на всей области одного цвета
-		if (!colorOut.size()) 
-		{
-			cout << "colorOut is empty\n";
-			colorOut.push_back(0.0);
-		}
-		float arr2[8]{ 0.1,0.2,0.3,0.4,0.0,0.0,0.0,0.8 };
-		glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA32F, 1, 2, 0, GL_RGBA, GL_FLOAT, arr2);
-		//glUniform1i(glGetUniformLocation(ourShader.getID(), "Content"), 0);
-		glUniform1i(glGetUniformLocation(ourShader.getID(), "ColorsTex"), 1);
+		setloc("ColorsTex");
+		createTex(GL_TEXTURE_2D, GL_RGBA32F, 1,2);
+		insDataTex<float, 2>(id-1, &colorOut[0], 1,2);
+
 
 
 	}
@@ -192,16 +173,12 @@ public:
 0.3680,	0.8245,0.2727,	0.0121,
 0.3627,	0.1939,0.1525,	0.1523,
 0.8642,	0.9577,0.2093,	0.4590
-
-
 		};
 
-		glUniform1i(10, 3);
-		glGenTextures(1, &texture);
-		glBindTexture(GL_TEXTURE_2D_ARRAY, texture);
-		glTexParameteri(GL_TEXTURE_2D_ARRAY, GL_TEXTURE_MIN_FILTER, GL_NEAREST);//см ниже
-		glTexParameteri(GL_TEXTURE_2D_ARRAY, GL_TEXTURE_MAG_FILTER, GL_NEAREST);//пиксель на всей области одного цвета
-		glTexImage3D(GL_TEXTURE_2D_ARRAY, 0, GL_RGBA8, 2, 2, 2, 0, GL_RGBA, GL_FLOAT, texels);
+		setloc("texture_array");
+		createTex(GL_TEXTURE_2D_ARRAY, GL_RGBA8, 2,2,2);
+		insDataTex<float, 3>(id-1, texels, 2,2,2);
+
 	}
 	template<class  cl1,int len>
 	void testData(GLenum target)
@@ -229,16 +206,11 @@ public:
 
 
 
-		testData<float, 32>(GL_TEXTURE_2D_ARRAY);
+		//testData<float, 32>(GL_TEXTURE_2D_ARRAY);
 
-		glActiveTexture(GL_TEXTURE1);
-		glBindTexture(GL_TEXTURE_2D, ID_texColor);
+		sendTex(1);
 		sendTex(0);
-		/*
-		glActiveTexture(GL_TEXTURE0);
-		glBindTexture(GL_TEXTURE_2D, ID_texDataSph);*/
-		glActiveTexture(GL_TEXTURE3);
-		glBindTexture(GL_TEXTURE_2D_ARRAY,texture );
+		sendTex(2);
 
 		glUniform2i(ID_sizeSph, sph0.size, sizey);
 		glUniform2i(ID_sizeSphes, 0, spheresSize);
