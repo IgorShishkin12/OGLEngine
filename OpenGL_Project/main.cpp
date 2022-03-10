@@ -114,14 +114,27 @@ int main()
 			vec[3] = Sphere{ 45,-14,100,309,3,3,3,1 };/**/
 	}
 	vector<Box> vec2(2);//(float sizex=0, float sizey=0, float sizez=0, float x=0, float y=0, float z=0, float a1=0, float b1=0, float c1=0
-	vec2[0] = Box{ 80,8,900,100,18,27,1 / 1,1 / 1,1 / 1 };
+	vec2[0] = Box{ 80,8,900,100, 18,27,1 / 1,1 / 1, 1 / 1 };
 	vec2[1] = Box{ 7,80,90,10,7,50,1 / 9,1 / 1,1 / 8 };
-	Textures tex(ourShader, vec2, vec);
-	tex.texarr();
-	tex.makeOut();
-	tex.start();
-	tex.send();
+	Textures tx{ ourShader };
+	vector <float> hans;
+	for (auto& j : vec)
+	{
+		const auto& q{ j.getArr() };
+		for (auto z : q)hans.push_back(z);
+	}
+	tx.addData(8, 4, 1, &hans[0]);
 
+	hans.clear();
+	for (auto& j : vec2)
+	{
+		const auto& q = j.get();
+		for (auto z : q)hans.push_back(z);
+	}
+	tx.addData(12, 2, 2, &hans[0]);
+
+	tx.createTexes();
+	tx.compressData();
 	while (!glfwWindowShouldClose(window))
 	{
 		// Обработка ввода
@@ -137,8 +150,7 @@ int main()
 		glDrawElements(GL_TRIANGLES, 6, GL_UNSIGNED_INT, 0);
 		mice2 = mouse();
 		glUniform4f(ID_mice, mice2[0], mice2[1], mice2[2], mice2[3]);
-		tex.sendData();
-
+		tx.send();
 		if (isMove(window, moveCrd))
 		{
 			glUniform3f(ID_coords, moveCrd[0], moveCrd[1], moveCrd[2]);

@@ -303,16 +303,16 @@ void main()
 	vec4 clr;
 	float len;
 	vec3 normal;
-	getPosition(me,ecran);
-	if(RTX(me,ecran,clr))
-	{
-		out_gl_FragColor = clr;
-	}
-	else
+	//getPosition(me,ecran);
+//	if(RTX(me,ecran,clr))
+//	{
+//		out_gl_FragColor = clr;
+//	}
+//	else
 	{
 		vec4 clr2=vec4(0,0,0,0);
 		//out_gl_FragColor = vec4(normalize(vec3(2.0,1.0,0.0)),1.0);
-		clr2 = texelFetch(texture_array,ivec3(1,1,0),0);
+		clr2 = texelFetch(texture_array,ivec3(0,0,0),0);
 		//clr2 = texture2DArray(texture_array, vec3(0,0,0));
 		if(clr2 == vec4(0.1,0.2,0.3,0.8))
 		clr2 = vec4(1,0,0,1);

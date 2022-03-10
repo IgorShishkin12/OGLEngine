@@ -7,92 +7,45 @@
 #include <GLFW/glfw3.h>
 #include"Shader.h"
 
-#include <cstdarg>
-
 //все о текстурах: обычно цвета нормализуются, в gl_rgba32f не нормализуются
 // параметры:https://www.khronos.org/registry/OpenGL-Refpages/gl4/html/glTexImage2D.xhtml
 //  texelFetch позволяет передавать в аргументах значения как для массива
 // 
 
-class Textures
+class Texture
 {
-	template<class t1>
-	class clr
-	{
-	public:
-		t1 r;
-		t1 g;
-		t1 b;
-		t1 a;
-	};
 	ShProg &ourShader;
-	Sphere sph0;
-	Box box0;
-	unsigned int id = 0;
+
+	unsigned int id;
 
 	unsigned int idArr[32]{ 0 };
 	unsigned int locArr[32]{ 0 };
 	GLenum targetArr[32];
-
-	long spheresSize = 0;
-	long boxesSize = 0;
-	const int sizey = 1;
-	vector<float> out;
-	vector<float> colorOut;
-	int ID_sizeSph = glGetUniformLocation(ourShader.getID(), "sizeSph");
-	int ID_sizeSphes = glGetUniformLocation(ourShader.getID(), "SphBeg_to_End");
-	int ID_sizeBoxes = glGetUniformLocation(ourShader.getID(), "BoxBeg_to_End");
-
+	bool isFree[32];
+	void searchFree()
+	{
+		for (int i = 0; i < 32; ++i)
+		{
+			if (isFree[i])
+			{
+				id = i;
+				return;
+			}
+		}
+		cerr << "no free textures"<<endl;
+	}
 
 public:
-	vector<clr<float>> colorBox, colorSph;
-	std::vector<Box> boxes;
-	std::vector<Sphere> spheres;
-	Textures(ShProg sdr,std::vector<Box> bs,std::vector<Sphere> ss):
-		boxes{bs},spheres{ss},ourShader{sdr}
+	array<string, 32> about;
+	Texture(ShProg& sdr):
+		ourShader{sdr}
 	{
+	memset(isFree, 1, 32);
+	searchFree();
 	}
-	void setColors()
+	unsigned int createTex(GLenum t1, unsigned int type, int width, int height=0, int depth=0)
 	{
-		for (auto i : colorSph)
-		{
-			colorOut.push_back(i.r);
-			colorOut.push_back(i.g);
-			colorOut.push_back(i.b);
-			colorOut.push_back(i.a);
-		}
-		for (auto i : colorBox)
-		{
-			colorOut.push_back(i.r);
-			colorOut.push_back(i.g);
-			colorOut.push_back(i.b);
-			colorOut.push_back(i.a);
-		}
-	}
-	void makeOut()
-	{
-		out.clear();
-		for (auto i : spheres)
-		{
-			auto qq = i.getArr();
-			for (auto j : qq)
-			{
-				out.push_back(j);
-			}
-		}
-		spheresSize = out.size();
-		for (auto i : boxes)
-		{
-			auto qq = i.get();
-			for (auto j : qq)
-			{
-				out.push_back(j);
-			}
-		}
-		boxesSize = out.size();
-	}
-	void createTex(GLenum t1, unsigned int type, int width, int height=0, int depth=0)
-	{
+		searchFree();
 		glActiveTexture(GL_TEXTURE0 + id);
 		glGenTextures(1, &(idArr[id]));
 		glBindTexture(t1, idArr[id]);
@@ -109,7 +62,9 @@ public:
 			glTexImage3D(t1, 0, type, width,height,depth, 0, GL_RGBA, GL_FLOAT, idArr);//заполняется мусором
 		glUniform1i(locArr[id], id);
 		targetArr[id] = t1;
+		isFree[id] = 0;
 		id++;
+		return id-1;
 	}
 	void setloc(string str)
 	{
@@ -143,43 +98,6 @@ public:
 		glActiveTexture(GL_TEXTURE0+id);
 		glBindTexture(targetArr[id], idArr[id]);
 	}
-	void start()
-	{	
-		//временно:
-		colorOut.resize(1);
-
-		setloc("Content");
-		createTex(GL_TEXTURE_2D, GL_RGBA32F, out.size(), sizey);
-		insDataTex<float, 2>(id-1, &out[0], out.size(), sizey);
-
-		setloc("ColorsTex");
-		createTex(GL_TEXTURE_2D, GL_RGBA32F, 1,2);
-		insDataTex<float, 2>(id-1, &colorOut[0], 1,2);
-
-
-
-	}
-		GLuint texture;
-	void texarr()
-	{
-		float texels[32] =
-		{
-
-0.9879,	0.2128, 0.5376,	0.0735,
-0.0478,	0.9165,0.8748,	0.0358,
-0.4566,	0.3258,0.3934,	0.7363,
-0.0639,	0.6707,0.8550,	0.8131,
-0.0259,	0.8566,0.2673,	0.6458,
-0.3680,	0.8245,0.2727,	0.0121,
-0.3627,	0.1939,0.1525,	0.1523,
-0.8642,	0.9577,0.2093,	0.4590
-		};
-
-		setloc("texture_array");
-		createTex(GL_TEXTURE_2D_ARRAY, GL_RGBA8, 2,2,2);
-		insDataTex<float, 3>(id-1, texels, 2,2,2);
-
-	}
 	template<class  cl1,int len>
 	void testData(GLenum target)
 	{
@@ -192,41 +110,143 @@ public:
 			cout << texelso[i] << "\t";
 		}
 	}
-	//bool addTex(int layer, float* data)
-	//{
 	//	//reference
 	//	//https://habr.com/ru/post/457380/
 	//	// https://www.khronos.org/opengl/wiki/Array_Texture
 	//	//https://www.khronos.org/registry/OpenGL-Refpages/gl4/html/glTexSubImage3D.xhtml
-	//	glTextureSubImage3D(GL_TEXTURE_2D_ARRAY, 0, 0, 0, layer, /*width*/512, /*height*/512, 1, GL_RGBA, GL_UNSIGNED_BYTE, data);
-	//	return true;
-	//}
+	//	glTextureSubImage3D(GL_TEXTURE_2D_ARRAY, 0, 0, 0, layer, /*width*/512, /*height*/512, 1, GL_RGBA, GL_UNSIGNED_BYTE, data)
+	void delTex(int id)
+	{
+		glDeleteTextures(1, &idArr[id]);
+		locArr[id] = 0;
+		targetArr[id] = 0;
+		about[id] = "";
+		isFree[id] = 1;
+	}
+	
+};
+
+class Textures
+{
+	Texture texes;
+	vector<float> compressedData, compressedDataAbout;
+	long long sizeData;
+	long maxTexSizeX=0, maxTexSizeY=0;
+	struct tex
+	{
+		int height;
+		int width;
+		vector<float>data;
+	};
+	vector<tex> texData;
+	struct DataAbout
+	{
+		long  dataSize;
+		long  cellSize;
+		long  cellCount;
+		int funcionNumber;
+		long long  dataBegin;
+		long long  dataEnd;	//  [data)
+		vector<float> data;
+		DataAbout( long cellSize1, long cellCount1, int funcionNumber1,long long dataBegin1, float *data1) :
+			cellSize{cellSize1},cellCount{cellCount1},funcionNumber{funcionNumber1},dataBegin{dataBegin1}
+		{
+			dataSize = cellSize*cellCount;
+			dataEnd = dataBegin + dataSize;
+			data.reserve(dataSize);
+			for (long long i = 0; i < dataSize; ++i)
+			{
+				data.push_back(*(data1 + i));
+			}
+		}
+		array <long long, 6> compress()
+		{
+			return array<long long, 6>{dataSize, cellSize, cellCount, funcionNumber, dataBegin, dataEnd};
+		}
+	};
+	vector<DataAbout> vecDataAbout;
+	int contentid, aboutid, texesid;
+public:
+	Textures(ShProg& sdr) :
+		texes{ sdr }
+	{
+
+	}
+	void createTexes()
+	{
+		texes.setloc("Content");
+		contentid=texes.createTex(GL_TEXTURE_2D, GL_RGBA32F, compressedData.size(), 1);
+		//texes.insDataTex<float, 2>(0, &compressedData[0], compressedData.size(), 1);
+
+		texes.setloc("ColorsTex");
+		aboutid=texes.createTex(GL_TEXTURE_2D, GL_RGBA32F, compressedDataAbout.size(), 1);
+		//texes.insDataTex<float, 2>(1, &compressedDataAbout[0], compressedDataAbout.size(), 1);
+
+
+		texes.setloc("texture_array");
+		texesid=texes.createTex(GL_TEXTURE_2D_ARRAY, GL_RGBA8, maxTexSizeX, maxTexSizeY, texData.size());
+		//texes.insDataTex<float, 3>(2, &texData[0][0], maxTexSizeX,maxTexSizeY,texData.size());
+	}
+
+	void addData( long cellSize1,long cellCount1, long functionNumber1,float* data1)
+	{
+		DataAbout timeTex{ cellSize1,cellCount1,functionNumber1,sizeData,data1 };
+		
+		for(auto &i : vecDataAbout)
+			if (i.funcionNumber == functionNumber1)
+			{
+				i = timeTex;
+				return;
+			}
+		vecDataAbout.push_back(timeTex);
+	}
+	int addTex(int height1, int width1, float* data1)
+	{
+		texData.resize(texData.size() + 1);
+		texData.back().height = height1;
+		texData.back().width = width1;
+		texData.back().data.reserve(height1 * width1);
+		for (long i = 0; i < height1 * width1; ++i)
+		{
+			texData.back().data.push_back(data1[i]);
+		}
+		maxTexSizeX = max(maxTexSizeX, texData.back().width);
+		maxTexSizeY = max(maxTexSizeY, texData.back().width);
+		return texData.size() - 1;
+	}
+	void compressTex()
+	{
+		vector<float> vec22;
+		long j = 0;
+		
+		for (auto& i : texData)
+		{
+			j++;
+			texes.insDataTex<float, 3>(texesid, &i.data[0], i.width, i.height, j, 0, 0, j - 1);
+				
+		}
+	}
+	void compressData()
+	{
+		compressedData.clear();
+		for (auto& i : vecDataAbout)
+		{
+			for (auto j : i.data)
+				compressedData.push_back(j);
+			const array <long long, 6>& time{ i.compress() };
+			for (auto j : time) compressedDataAbout.push_back(j);
+		}
+		texes.insDataTex<float, 2>(contentid, &compressedData[0], compressedData.size(), 1);
+		texes.insDataTex<float, 2>(aboutid, &compressedDataAbout[0], compressedDataAbout.size(), 1);
+	}
+	void sendData();
+	void reCompress()
+	{
+	}
 	void send()
 	{
-
-
-
-		//testData<float, 32>(GL_TEXTURE_2D_ARRAY);
-
-		sendTex(1);
-		sendTex(0);
-		sendTex(2);
-
-		glUniform2i(ID_sizeSph, sph0.size, sizey);
-		glUniform2i(ID_sizeSphes, 0, spheresSize);
-		glUniform2i(ID_sizeBoxes, spheresSize+1, boxesSize + spheresSize+1);
-		//for (auto q : out)
-		//{
-		//	cout << q << "\n";
-		//}
+		texes.sendTex(contentid);
+		texes.sendTex(aboutid);
+		texes.sendTex(texesid);
 	}
-	void sendData()
-	{
-
-		glUniform2i(ID_sizeSph,sph0.size, sizey);
-		glUniform2i(ID_sizeSphes, 0, spheresSize/4);
-		glUniform2i(ID_sizeBoxes, spheresSize/4, boxesSize/4);
-		//cout << spheresSize<<"\n";
-	}
-
 };
