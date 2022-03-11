@@ -20,6 +20,7 @@
 void framebuffer_size_callback(GLFWwindow* window, int width, int height);
 void processInput(GLFWwindow* window);
 bool isMove(GLFWwindow* window, float* arr);
+void sendWindowP(GLFWwindow*,ShProg&);
 std::array<float, 4> mouse();
 // Константы
 const unsigned int SCR_WIDTH = 800;
@@ -149,6 +150,7 @@ int main()
 		glBindVertexArray(VAO);
 		glDrawElements(GL_TRIANGLES, 6, GL_UNSIGNED_INT, 0);
 		mice2 = mouse();
+		sendWindowP(window, ourShader);
 		glUniform4f(ID_mice, mice2[0], mice2[1], mice2[2], mice2[3]);
 		tx.send();
 		if (isMove(window, moveCrd))
@@ -242,5 +244,21 @@ bool isMove(GLFWwindow *window, float* arr)
 		--arr[2];
 	}
 	return flag1;
+
+}
+
+void sendWindowP(GLFWwindow* window,ShProg& ourSdr)
+{
+	static bool isFirst{ 1 };
+	static int ID_coords;
+	if (isFirst)
+	{
+		isFirst = 0;
+		ID_coords = glGetUniformLocation(ourSdr.getID(), "u_resolution");
+
+	}
+		int width, height;
+		glfwGetWindowSize(window, &width, &height);
+		glUniform2i(ID_coords, width, height);
 
 }

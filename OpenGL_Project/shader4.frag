@@ -7,17 +7,15 @@
 precision mediump float;
 #endif
 
-vec2 u_resolution=vec2(600.0,800.0);
+layout (location = 105) uniform ivec2 u_resolution;
 layout (location = 100) uniform vec3 me1;
 layout (location = 101) uniform vec4 mouse;
-layout (location = 102)uniform ivec2 sizeSph;
-layout (location = 103)uniform ivec2 SphBeg_to_End;
-layout (location = 104)uniform ivec2 BoxBeg_to_End;
 layout (location = 10) uniform sampler2DArray texture_array;//88ff штук максимум
 layout (location = 8)uniform sampler2D Content;
-layout (location = 9)uniform sampler2D ColorsTex;
+layout (location = 9)uniform isampler2D ContentAbout;
 const float inf = abs(1.0/0.0);
 out vec4 out_gl_FragColor;
+
 bool isSphereIntersect( in vec3 rayOrigin, in vec3 rayDirection, in vec3 center, in float radius, out float distance1,out float distance2 )
 {
 	vec3  originCenter = rayOrigin - center;
@@ -113,47 +111,34 @@ bool getBoxClr1(in vec3 me,in vec3 lookTo,in vec3 boxSize,in vec4 boxRotxy,in ve
 	norm = unrotate(norm,boxRotxy.xy,boxRotxy.zw,boxRotz);
 	return true;
 }
-bool getBoxClr(in vec3 me,in vec3 lookTo,out float len, out vec3 norm,out vec4 color)
+bool getBoxClr(in vec3 me,in vec3 lookTo,in ivec4 in1, in ivec4 in2,out float len, out vec3 norm,out vec4 color)
 {
 	//return true;
 	vec4 sphs1,sphs2,sphs3;
 	float lenNow = inf;
 	len = lenNow;
 	vec3 normAns;
-	int iNow = BoxBeg_to_End.x;
-	int size = BoxBeg_to_End.y;
-	if(size==0) return false;
-	for (int i = BoxBeg_to_End.x;i<size;i=i+3)
+	if(in1.x/4==0) return false;
+	for (int i = in2.x;i<in1.x/4;i=i+3)
 	{//sicoss[0], sicoss[1], sicoss[2], sicoss[3], sicoss[4], sicoss[5],sizes[0],sizes[1],sizes[2],position[0],position[1],position[2] 
 		sphs1 = texelFetch(Content,ivec2(i,0),0);
 		sphs2 = texelFetch(Content,ivec2(i+1,0),0);
 		sphs3 = texelFetch(Content,ivec2(i+2,0),0);
 		if(!getBoxClr1(me,lookTo,vec3(sphs2.zw,sphs3.x),sphs1,sphs2.xy,sphs3.yzw,lenNow,norm))
-		{
-
 			continue;
-		}
 		else if(len>lenNow)
 		{
 			len=lenNow;
-			iNow=i;
+			in1.x=i;
 			normAns=norm;
-			//color = vec4(0,0,1,1);
 		}
 		else
-		{
 			continue;
-			//color = vec4(1,0,1,1);
-		}
 	}
-	
-	//len = 100;
 	if (len==inf) return false;
-	//normAns=normAns*sign(-dot(normAns,lookTo));
 	norm=normAns;
-	color = vec4(normalize(texelFetch(Content,ivec2(iNow+0,0),0).xyz),0);
+	color = vec4(normalize(texelFetch(Content,ivec2(in1.x+0,0),0).xyz),0);
 	return true;
-
 }
 
 vec3 sphN(vec3 sphCen,vec3 me,vec3 rayDirection,float distance)
@@ -165,7 +150,9 @@ vec3 sphN(vec3 sphCen,vec3 me,vec3 rayDirection,float distance)
 void getPosition(out vec3 me,out vec3 lookTo)
 {
 	me.xyz = me1.xyz;
-	lookTo = normalize(vec3((gl_FragCoord.xy/u_resolution-vec2(0.5,0.5)),  0.7+sqrt(16.0-pow((gl_FragCoord.x/500.0-0.5),2.0)+pow(abs(gl_FragCoord.y/500.0-0.5),2.0))/16.0));
+	float maxres = max(u_resolution.x,u_resolution.y);
+	vec2 nFragCoord = (gl_FragCoord.xy-u_resolution/2)/vec2(maxres/2,maxres/2);
+	lookTo = normalize(vec3((nFragCoord),  1/tan(3.1415/6)*(u_resolution.x+u_resolution.y)/(maxres/2*2*2)));//фокусное расстояние  такое что на экране все видно  под углом в х градусов в среднем
 	lookTo = mat3(//матрица поворота
 	1,0,0,
 	0,mouse.y,-mouse.x,
@@ -177,16 +164,15 @@ void getPosition(out vec3 me,out vec3 lookTo)
 	)*lookTo;
 }
 
-bool getSphClr(in vec3 me,in vec3 lookTo, out float len, out vec4 color,out vec3 normal)
+bool getSphClr(in vec3 me,in vec3 lookTo,in ivec4 in1, in ivec4 in2, out float len, out vec4 color,out vec3 normal)
 {
 	vec4 sphs1,sphs2;
 	float distan1,distan2,radiusSph,lenNow = inf;
 	len = lenNow;
 	vec3 sphCen;
-	int iNow = SphBeg_to_End.x;
-	int size = SphBeg_to_End.y;
-	if(size==0) return false;
-	for (int i = SphBeg_to_End.x;i<size;i=i+2)
+	int iNow = in1.x;
+	if(in1.x/4==0) return false;
+	for (int i = in2.x/4;i<in2.y/4;i=i+2)
 	{
 		sphs1 = texelFetch(Content,ivec2(i,0),0);
 		sphs2 = texelFetch(Content,ivec2(i+1,0),0);
@@ -228,7 +214,7 @@ bool RTX(in vec3 me,in vec3 lookTo,  out vec4 color)
 	for(int i = 0;i<4;++i)
 	{
 		lengs[0][i]=inf;
-		if(getSphClr(me,lookTo,lengs[1][i],colors[1][i],norm[1])) 
+		if(getSphClr(me,lookTo,texture(ContentAbout,ivec2(0,0),0),texelFetch(ContentAbout,ivec2(1,0),0),lengs[1][i],colors[1][i],norm[1])) 
 		{
 			++j;
 			//in vec3 me,in vec3 lookTo,in vec3 boxSize,in vec3 boxRot, in vec3 boxOrigin, out float len,out vec3 norm)
@@ -238,7 +224,7 @@ bool RTX(in vec3 me,in vec3 lookTo,  out vec4 color)
 			lengs[1][i]=inf;
 
 		}
-		if(getBoxClr(me,lookTo,lengs[2][i],norm[2],colors[2][i]))
+		if(getBoxClr(me,lookTo,texture(ContentAbout,ivec2(2,0),0),texelFetch(ContentAbout,ivec2(3,0),0),lengs[2][i],norm[2],colors[2][i]))
 		{
 			++j;
 		}
@@ -303,12 +289,12 @@ void main()
 	vec4 clr;
 	float len;
 	vec3 normal;
-	//getPosition(me,ecran);
-//	if(RTX(me,ecran,clr))
-//	{
-//		out_gl_FragColor = clr;
-//	}
-//	else
+	getPosition(me,ecran);
+	if(RTX(me,ecran,clr))
+	{
+		out_gl_FragColor = clr;
+	}
+	else
 	{
 		vec4 clr2=vec4(0,0,0,0);
 		//out_gl_FragColor = vec4(normalize(vec3(2.0,1.0,0.0)),1.0);
@@ -323,6 +309,11 @@ void main()
 		
 		out_gl_FragColor = vec4(normalize(vec3(clr2.xyz)),1.0);
 	}
+//if(gl_FragCoord.x<u_resolution.x/2)
+//out_gl_FragColor = vec4(1,1,0,1);
+//else
+//out_gl_FragColor = vec4(0,0,0,0);
+
 }
 
  

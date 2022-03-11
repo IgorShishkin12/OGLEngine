@@ -43,7 +43,8 @@ public:
 	memset(isFree, 1, 32);
 	searchFree();
 	}
-	unsigned int createTex(GLenum t1, unsigned int type, int width, int height=0, int depth=0)
+	template<GLuint type = GL_FLOAT, GLuint format = GL_RGBA>
+	unsigned int createTex(GLenum t1, unsigned int internalformat, int width, int height=0, int depth=0)
 	{
 		searchFree();
 		glActiveTexture(GL_TEXTURE0 + id);
@@ -52,14 +53,11 @@ public:
 		glTexParameteri(t1, GL_TEXTURE_MIN_FILTER, GL_NEAREST);//см ниже
 		glTexParameteri(t1, GL_TEXTURE_MAG_FILTER, GL_NEAREST);//пиксель на всей области одного цвета
 		if (t1 == GL_TEXTURE_1D || t1 == GL_TEXTURE_BUFFER)
-			glTexImage1D(t1, 0, type, width, 0, GL_RGBA, GL_FLOAT, idArr);//заполняется мусором
+			glTexImage1D(t1, 0, internalformat, width, 0, format, type, idArr);//заполняется мусором
 		else if (t1 == GL_TEXTURE_2D || t1 == GL_TEXTURE_1D_ARRAY || t1 == GL_TEXTURE_RECTANGLE)
-		{
-			glTexImage2D(t1, 0, type, width, height, 0, GL_RGBA, GL_FLOAT, 0);//заполняется мусором
-
-		}
+			glTexImage2D(t1, 0, internalformat, width, height, 0, format, type, 0);//заполняется мусором
 		else if (t1 == GL_TEXTURE_3D || t1 == GL_TEXTURE_2D_ARRAY)
-			glTexImage3D(t1, 0, type, width,height,depth, 0, GL_RGBA, GL_FLOAT, idArr);//заполняется мусором
+			glTexImage3D(t1, 0, internalformat, width,height,depth, 0, format, type, idArr);//заполняется мусором
 		glUniform1i(locArr[id], id);
 		targetArr[id] = t1;
 		isFree[id] = 0;
@@ -80,17 +78,17 @@ public:
 	//insDataTex<2, float>(targetid, data, sizex, sizey, offsetx, offsety);
 	// можно было бы сделать элипсис, но там не понятно кончились ли числа или мы их не ввели так как они 0
 	// 
-	template<class cl1,int dim = 1>
+	template<class cl1,int dim = 1, GLuint type = GL_FLOAT, GLuint format = GL_RGBA>
 	void insDataTex(int id2, cl1* dataIn, int in1 = 0, int in2 = 0, int in3 = 0, int in4 = 0, int in5 = 0, int in6 = 0 )
 	{
 		glActiveTexture(GL_TEXTURE0 + id2);
 		glBindTexture(targetArr[id2], idArr[id2]);
 		if (dim == 1)
-			glTexSubImage1D(targetArr[id2], 0, in2,in1, GL_RGBA, GL_FLOAT, dataIn);
+			glTexSubImage1D(targetArr[id2], 0, in2,in1, format, type, dataIn);
 		else if (dim == 2)
-			glTexSubImage2D(targetArr[id2], 0, in3, in4, in1, in2, GL_RGBA, GL_FLOAT, dataIn);
+			glTexSubImage2D(targetArr[id2], 0, in3, in4, in1, in2, format, type, dataIn);
 		else if (dim == 3)
-			glTexSubImage3D(targetArr[id2], 0, in4,in5,in6,in1,in2,in3, GL_RGBA, GL_FLOAT, dataIn);
+			glTexSubImage3D(targetArr[id2], 0, in4,in5,in6,in1,in2,in3, format, type, dataIn);
 	}
 	void sendTex(int id)
 	{
@@ -129,8 +127,9 @@ public:
 class Textures
 {
 	Texture texes;
-	vector<float> compressedData, compressedDataAbout;
-	long long sizeData;
+	vector<float> compressedData;
+	vector<long>compressedDataAbout;
+	long long sizeData=0;
 	long maxTexSizeX=0, maxTexSizeY=0;
 	struct tex
 	{
@@ -178,8 +177,8 @@ public:
 		contentid=texes.createTex(GL_TEXTURE_2D, GL_RGBA32F, compressedData.size()/4, 1);
 		//texes.insDataTex<float, 2>(0, &compressedData[0], compressedData.size(), 1);
 
-		texes.setloc("ColorsTex");
-		aboutid=texes.createTex(GL_TEXTURE_2D, GL_RGBA32F, compressedDataAbout.size()/4, 1);
+		texes.setloc("ContentAbout");
+		aboutid=texes.createTex<GL_INT, GL_RGBA_INTEGER>(GL_TEXTURE_2D, GL_RGBA32I, compressedDataAbout.size()/4, 1);
 		//texes.insDataTex<float, 2>(1, &compressedDataAbout[0], compressedDataAbout.size(), 1);
 
 
@@ -191,7 +190,7 @@ public:
 	void addData( long cellSize1,long cellCount1, long functionNumber1,float* data1)
 	{
 		DataAbout timeTex{ cellSize1,cellCount1,functionNumber1,sizeData,data1 };
-		
+		sizeData += timeTex.dataSize;
 		for(auto &i : vecDataAbout)
 			if (i.funcionNumber == functionNumber1)
 			{
@@ -240,7 +239,7 @@ public:
 		if (isIns)
 		{
 		texes.insDataTex<float, 2>(contentid, &compressedData[0], compressedData.size()/4, 1);
-		texes.insDataTex<float, 2>(aboutid, &compressedDataAbout[0], compressedDataAbout.size()/4, 1);
+		texes.insDataTex<long, 2, GL_INT, GL_RGBA_INTEGER>(aboutid, &compressedDataAbout[0], compressedDataAbout.size()/4, 1);
 		}
 	}
 	void sendData();
