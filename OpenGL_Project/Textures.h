@@ -80,17 +80,17 @@ public:
 	//insDataTex<2, float>(targetid, data, sizex, sizey, offsetx, offsety);
 	// можно было бы сделать элипсис, но там не понятно кончились ли числа или мы их не ввели так как они 0
 	// 
-	template<class cl1,int dim = 1,GLenum type = GL_FLOAT>
+	template<class cl1,int dim = 1>
 	void insDataTex(int id2, cl1* dataIn, int in1 = 0, int in2 = 0, int in3 = 0, int in4 = 0, int in5 = 0, int in6 = 0 )
 	{
 		glActiveTexture(GL_TEXTURE0 + id2);
 		glBindTexture(targetArr[id2], idArr[id2]);
 		if (dim == 1)
-			glTexSubImage1D(targetArr[id2], 0, in2,in1, GL_RGBA, type, dataIn);
+			glTexSubImage1D(targetArr[id2], 0, in2,in1, GL_RGBA, GL_FLOAT, dataIn);
 		else if (dim == 2)
-			glTexSubImage2D(targetArr[id2], 0, in3, in4, in1, in2, GL_RGBA, type, dataIn);
+			glTexSubImage2D(targetArr[id2], 0, in3, in4, in1, in2, GL_RGBA, GL_FLOAT, dataIn);
 		else if (dim == 3)
-			glTexSubImage3D(targetArr[id2], 0, in4,in5,in6,in1,in2,in3, GL_RGBA, type, dataIn);
+			glTexSubImage3D(targetArr[id2], 0, in4,in5,in6,in1,in2,in3, GL_RGBA, GL_FLOAT, dataIn);
 	}
 	void sendTex(int id)
 	{
@@ -159,9 +159,9 @@ class Textures
 				data.push_back(*(data1 + i));
 			}
 		}
-		array <long long, 6> compress()
+		array <long long, 8> compress()
 		{
-			return array<long long, 6>{dataSize, cellSize, cellCount, funcionNumber, dataBegin, dataEnd};
+			return array<long long, 8>{dataSize, cellSize, cellCount, funcionNumber, dataBegin, dataEnd,0,0};
 		}
 	};
 	vector<DataAbout> vecDataAbout;
@@ -175,16 +175,16 @@ public:
 	void createTexes()
 	{
 		texes.setloc("Content");
-		contentid=texes.createTex(GL_TEXTURE_2D, GL_RGBA32F, compressedData.size(), 1);
+		contentid=texes.createTex(GL_TEXTURE_2D, GL_RGBA32F, compressedData.size()/4, 1);
 		//texes.insDataTex<float, 2>(0, &compressedData[0], compressedData.size(), 1);
 
 		texes.setloc("ColorsTex");
-		aboutid=texes.createTex(GL_TEXTURE_2D, GL_RGBA32F, compressedDataAbout.size(), 1);
+		aboutid=texes.createTex(GL_TEXTURE_2D, GL_RGBA32F, compressedDataAbout.size()/4, 1);
 		//texes.insDataTex<float, 2>(1, &compressedDataAbout[0], compressedDataAbout.size(), 1);
 
 
 		texes.setloc("texture_array");
-		texesid=texes.createTex(GL_TEXTURE_2D_ARRAY, GL_RGBA8, maxTexSizeX, maxTexSizeY, texData.size());
+		texesid=texes.createTex(GL_TEXTURE_2D_ARRAY, GL_RGBA8, maxTexSizeX, maxTexSizeY, texData.size()/4);
 		//texes.insDataTex<float, 3>(2, &texData[0][0], maxTexSizeX,maxTexSizeY,texData.size());
 	}
 
@@ -226,18 +226,22 @@ public:
 				
 		}
 	}
-	void compressData()
+	void compressData(bool isIns= 1)
 	{
 		compressedData.clear();
+		compressedDataAbout.clear();
 		for (auto& i : vecDataAbout)
 		{
 			for (auto j : i.data)
 				compressedData.push_back(j);
-			const array <long long, 6>& time{ i.compress() };
+			const array <long long, 8>& time{ i.compress() };
 			for (auto j : time) compressedDataAbout.push_back(j);
 		}
-		texes.insDataTex<float, 2>(contentid, &compressedData[0], compressedData.size(), 1);
-		texes.insDataTex<float, 2>(aboutid, &compressedDataAbout[0], compressedDataAbout.size(), 1);
+		if (isIns)
+		{
+		texes.insDataTex<float, 2>(contentid, &compressedData[0], compressedData.size()/4, 1);
+		texes.insDataTex<float, 2>(aboutid, &compressedDataAbout[0], compressedDataAbout.size()/4, 1);
+		}
 	}
 	void sendData();
 	void reCompress()

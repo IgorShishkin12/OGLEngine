@@ -132,7 +132,7 @@ int main()
 		for (auto z : q)hans.push_back(z);
 	}
 	tx.addData(12, 2, 2, &hans[0]);
-
+	tx.compressData(0);
 	tx.createTexes();
 	tx.compressData();
 	while (!glfwWindowShouldClose(window))
