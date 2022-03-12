@@ -151,7 +151,7 @@ class Textures
 			cellSize{cellSize1},cellCount{cellCount1},funcionNumber{funcionNumber1},dataBegin{dataBegin1}
 		{
 			dataSize = cellSize*cellCount;
-			dataEnd = dataBegin + dataSize;
+			dataEnd = dataBegin + dataSize-1;
 			data.reserve(dataSize);
 			for (long long i = 0; i < dataSize; ++i)
 			{

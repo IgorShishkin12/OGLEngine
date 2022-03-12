@@ -118,8 +118,9 @@ bool getBoxClr(in vec3 me,in vec3 lookTo,in ivec4 in1, in ivec4 in2,out float le
 	float lenNow = inf;
 	len = lenNow;
 	vec3 normAns;
+	int iNow = in1.x;
 	if(in1.x/4==0) return false;
-	for (int i = in2.x;i<in1.x/4;i=i+3)
+	for (int i = in2.x/4;i<in2.y/4;i=i+3)
 	{//sicoss[0], sicoss[1], sicoss[2], sicoss[3], sicoss[4], sicoss[5],sizes[0],sizes[1],sizes[2],position[0],position[1],position[2] 
 		sphs1 = texelFetch(Content,ivec2(i,0),0);
 		sphs2 = texelFetch(Content,ivec2(i+1,0),0);
@@ -129,7 +130,7 @@ bool getBoxClr(in vec3 me,in vec3 lookTo,in ivec4 in1, in ivec4 in2,out float le
 		else if(len>lenNow)
 		{
 			len=lenNow;
-			in1.x=i;
+			iNow=i;
 			normAns=norm;
 		}
 		else
@@ -137,7 +138,7 @@ bool getBoxClr(in vec3 me,in vec3 lookTo,in ivec4 in1, in ivec4 in2,out float le
 	}
 	if (len==inf) return false;
 	norm=normAns;
-	color = vec4(normalize(texelFetch(Content,ivec2(in1.x+0,0),0).xyz),0);
+	color = vec4(normalize(texelFetch(Content,ivec2(iNow+0,0),0).xyz),0);
 	return true;
 }
 
