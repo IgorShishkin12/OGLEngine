@@ -14,6 +14,7 @@
 #include "Matrix.h"
 #include "Sphere.h"
 #include"Textures.h"
+#include "Materials.h"
 //#include "stb_image.h"
 #include<array>
 #include <iostream>
@@ -83,7 +84,7 @@ int main()
 
 	glBindBuffer(GL_ARRAY_BUFFER, VBO);
 	glBufferData(GL_ARRAY_BUFFER, sizeof(vertices), vertices, GL_STATIC_DRAW);
-	 
+
 	glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, EBO);
 	glBufferData(GL_ELEMENT_ARRAY_BUFFER, sizeof(indices), indices, GL_STATIC_DRAW);
 
@@ -109,30 +110,53 @@ int main()
 	{
 		vec.resize(4);//float radius=1, float x=0, float y=0, float z=0, float r=0, float g=0, float b=0, float a=1
 
-			vec[0] = Sphere{100,14,100,39,0,3,8,1};
-			vec[1] = Sphere{50,14,-100,-39,9,3,2,1};
-			vec[2] = Sphere{ 10,14,-100,200,0,3,0,1 };
-			vec[3] = Sphere{ 45,-14,100,309,3,3,3,1 };/**/
+		vec[0] = Sphere{ 100,14,100,39,0,3,8 };
+		vec[0].setMat(0, 100);
+		vec[1] = Sphere{ 50,14,-100,-39,9,3,2 };
+		vec[1].setMat(0, 100);
+		vec[2] = Sphere{ 10,14,-100,200,0,3,0 };
+		vec[2].setMat(0, 100);
+		vec[3] = Sphere{ 45,-14,100,309,3,3,3 };/**/
+		vec[3].setMat(0, 100);
+
 	}
 	vector<Box> vec2(2);//(float sizex=0, float sizey=0, float sizez=0, float x=0, float y=0, float z=0, float a1=0, float b1=0, float c1=0
 	vec2[0] = Box{ 80,8,900,100, 18,27,1 / 1,1 / 1, 1 / 1 };
 	vec2[1] = Box{ 7,80,90,10,7,50,1 / 9,1 / 1,1 / 8 };
+	vector<Material1> mats;
+	{
+		mats.reserve(1);
+		Material1 mat1{ 1,2,3 };
+		mats.push_back(mat1);
+	}
 	Textures tx{ ourShader };
 	vector <float> hans;
-	for (auto& j : vec)
 	{
-		const auto& q{ j.getArr() };
-		for (auto z : q)hans.push_back(z);
+		for (auto& j : vec)
+		{
+			const auto& q{ j.getArr() };
+			for (auto z : q)hans.push_back(z);
+		}
+		tx.addData(8, 4, 1, &hans[0]);
 	}
-	tx.addData(8, 4, 1, &hans[0]);
-
-	hans.clear();
-	for (auto& j : vec2)
 	{
-		const auto& q = j.get();
-		for (auto z : q)hans.push_back(z);
+		hans.clear();
+		for (auto& j : vec2)
+		{
+			const auto& q = j.get();
+			for (auto z : q)hans.push_back(z);
+		}
+		tx.addData(12, 2, 2, &hans[0]);
 	}
-	tx.addData(12, 2, 2, &hans[0]);
+	{
+		hans.clear();
+		for (auto& j : mats)
+		{
+			const auto& q = j.getData();
+			for (auto z : q)hans.push_back(z);
+		}
+		tx.addData(8, 1, 100, &hans[0]);
+	}
 	tx.compressData(0);
 	tx.createTexes();
 	tx.compressData();

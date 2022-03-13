@@ -13,6 +13,7 @@ layout (location = 101) uniform vec4 mouse;
 layout (location = 10) uniform sampler2DArray texture_array;//88ff штук максимум
 layout (location = 8)uniform sampler2D Content;
 layout (location = 9)uniform isampler2D ContentAbout;
+layout (location = 10)uniform isampler2D AboutMaterial;
 const float inf = abs(1.0/0.0);
 out vec4 out_gl_FragColor;
 
@@ -111,16 +112,17 @@ bool getBoxClr1(in vec3 me,in vec3 lookTo,in vec3 boxSize,in vec4 boxRotxy,in ve
 	norm = unrotate(norm,boxRotxy.xy,boxRotxy.zw,boxRotz);
 	return true;
 }
-bool getBoxClr(in vec3 me,in vec3 lookTo,in ivec4 in1, in ivec4 in2,out float len, out vec3 norm,out vec4 color)
+bool getBoxClr(in vec3 me,in vec3 lookTo,in ivec4 in1, in ivec4 in2,out float len/*, out vec3 norm,out vec4 color*/,out int id)
 {
 	//return true;
+	vec3 norm;
 	vec4 sphs1,sphs2,sphs3;
 	float lenNow = inf;
 	len = lenNow;
 	vec3 normAns;
 	int iNow = in1.x;
 	if(in1.x/4==0) return false;
-	for (int i = in2.x/4;i<in2.y/4;i=i+3)
+	for (int i = in2.x/4;i<in2.y/4;i=i+in1.y/4)
 	{//sicoss[0], sicoss[1], sicoss[2], sicoss[3], sicoss[4], sicoss[5],sizes[0],sizes[1],sizes[2],position[0],position[1],position[2] 
 		sphs1 = texelFetch(Content,ivec2(i,0),0);
 		sphs2 = texelFetch(Content,ivec2(i+1,0),0);
@@ -138,15 +140,44 @@ bool getBoxClr(in vec3 me,in vec3 lookTo,in ivec4 in1, in ivec4 in2,out float le
 	}
 	if (len==inf) return false;
 	norm=normAns;
-	color = vec4(normalize(texelFetch(Content,ivec2(iNow+0,0),0).xyz),0);
+	id = (iNow-in2.x/4)*4/in1.y;
+	//color = vec4(normalize(texelFetch(Content,ivec2(iNow+0,0),0).xyz),0);
 	return true;
 }
 
-vec3 sphN(vec3 sphCen,vec3 me,vec3 rayDirection,float distance)
+vec3 sphN(in vec3 sphCen,vec3 me,in vec3 rayDirection,in float distan)
 {
-	return normalize(me+rayDirection*distance-sphCen);
+	return normalize(me+rayDirection*distan-sphCen);
 }
-
+bool getTriColor(in vec3 me,in vec3 lookTo,in ivec4 in1, in ivec4 in2,out float len,out int id)
+{
+vec4 sphs1,sphs2,sphs3;
+	float lenNow = inf;
+	vec3 normal;
+	len = lenNow;
+	int iNow = in1.x;
+	if(in1.x/4==0) return false;
+	for (int i = in2.x/4;i<in2.y/4;i=i+in1.y/4)
+	{
+		sphs1 = texelFetch(Content,ivec2(i,0),0);
+		sphs2 = texelFetch(Content,ivec2(i+1,0),0);
+		sphs3 = texelFetch(Content,ivec2(i+2,0),0);
+		if(!isTriIntersect(me,lookTo,sphs1.xyz,vec3(sphs1.w,sphs2.xy),vec3(sphs2.zw,sphs3.x),lenNow,normal))
+		{
+			continue;
+		}
+		else if(lenNow < len)
+		{
+			len = lenNow;
+			iNow = i;
+		}
+	}
+	id = (iNow-in2.x/4)*4/in1.y;
+	if (len==inf) return false;
+//	color = normalize(vec4(texelFetch(Content,ivec2(iNow+1,0),0).xyz,1.0));
+//	normal = sphN(texelFetch(Content,ivec2(iNow,0),0).yzw,me,lookTo,len);
+	return true;
+}
 
 void getPosition(out vec3 me,out vec3 lookTo)
 {
@@ -165,7 +196,7 @@ void getPosition(out vec3 me,out vec3 lookTo)
 	)*lookTo;
 }
 
-bool getSphClr(in vec3 me,in vec3 lookTo,in ivec4 in1, in ivec4 in2, out float len, out vec4 color,out vec3 normal)
+bool getSphClr(in vec3 me,in vec3 lookTo,in ivec4 in1, in ivec4 in2, out float len,/* out vec4 color,out vec3 normal,*/out int id)
 {
 	vec4 sphs1,sphs2;
 	float distan1,distan2,radiusSph,lenNow = inf;
@@ -173,7 +204,7 @@ bool getSphClr(in vec3 me,in vec3 lookTo,in ivec4 in1, in ivec4 in2, out float l
 	vec3 sphCen;
 	int iNow = in1.x;
 	if(in1.x/4==0) return false;
-	for (int i = in2.x/4;i<in2.y/4;i=i+2)
+	for (int i = in2.x/4;i<in2.y/4;i=i+in1.y/4)
 	{
 		sphs1 = texelFetch(Content,ivec2(i,0),0);
 		sphs2 = texelFetch(Content,ivec2(i+1,0),0);
@@ -198,90 +229,86 @@ bool getSphClr(in vec3 me,in vec3 lookTo,in ivec4 in1, in ivec4 in2, out float l
 		}
 	}
 	if (len==inf) return false;
-	color = normalize(vec4(texelFetch(Content,ivec2(iNow+1,0),0).xyz,1.0));
-	normal = sphN(texelFetch(Content,ivec2(iNow,0),0).yzw,me,lookTo,len);
+	id = (iNow-in2.x/4)*4/in1.y;
+//	color = normalize(vec4(texelFetch(Content,ivec2(iNow+1,0),0).xyz,1.0));
+//	normal = sphN(texelFetch(Content,ivec2(iNow,0),0).yzw,me,lookTo,len);
 	return true;
 }
 
-
 bool RTX(in vec3 me,in vec3 lookTo,  out vec4 color)
 {
-	vec4 colors[4][4];
-	float lengs[4][4];
-	vec3 norm[4];
-	//vec3 triAns;
-	int j =0;
-	//colors[2][0]=vec4(1,0,1,1);
+	float lengsum = 0;
 	for(int i = 0;i<4;++i)
 	{
-		lengs[0][i]=inf;
-		if(getSphClr(me,lookTo,texture(ContentAbout,ivec2(0,0),0),texelFetch(ContentAbout,ivec2(1,0),0),lengs[1][i],colors[1][i],norm[1])) 
+		vec2 leng=vec2(inf,inf);
+		ivec2 id,id_T;
+		id_T.x=texelFetch(ContentAbout,ivec2(0,0),0).w;
+		if(getSphClr(me,lookTo,texelFetch(ContentAbout,ivec2(0,0),0),texelFetch(ContentAbout,ivec2(1,0),0),leng.y,id_T.y)) 
 		{
-			++j;
-			//in vec3 me,in vec3 lookTo,in vec3 boxSize,in vec3 boxRot, in vec3 boxOrigin, out float len,out vec3 norm)
-		}
-		else
-		{
-			lengs[1][i]=inf;
+			if(leng.y<leng.x)
+			{
+			leng.x=leng.y;
+			id= id_T;
+			}
 
 		}
-		if(getBoxClr(me,lookTo,texture(ContentAbout,ivec2(2,0),0),texelFetch(ContentAbout,ivec2(3,0),0),lengs[2][i],norm[2],colors[2][i]))
+		id_T.x=texelFetch(ContentAbout,ivec2(2,0),0).w;
+		if(getBoxClr(me,lookTo,texelFetch(ContentAbout,ivec2(2,0),0),texelFetch(ContentAbout,ivec2(3,0),0),leng.y,id_T.y))
 		{
-			++j;
-		}
-		else
-		{
-			lengs[2][i]=inf;
-		}
-		
-		if(isTriIntersect(me,lookTo,vec3(-100,-100,-75),vec3(-20,-130,-80),vec3(-170,-110,-75),lengs[3][i],norm[3]))
-		{
-			++j;
-			//lengs[3][i]=1/triAns.x;
-			colors[3][i]= vec4(0,1,1,1);
-			//norm[3]=normalize(vec3(1,1,1));
-		}
-		else
-		{
-			lengs[3][i]=inf;
+			if(leng.y<leng.x)
+			{
+			leng.x=leng.y;
+			id= id_T;
+			}
+
 		}
 		
-		if(lengs[0][i]>lengs[2][i])
+		id_T.x=texelFetch(ContentAbout,ivec2(4,0),0).w;
+		if(getTriColor(me,lookTo,texelFetch(ContentAbout,ivec2(4,0),0),texelFetch(ContentAbout,ivec2(5,0),0),leng.y,id_T.y))
 		{
-			lengs[0][i]=lengs[2][i];
-			colors[0][i]=colors[2][0];
-			norm[0]=norm[2];
+			if(leng.y<leng.x)
+			{
+			leng.x=leng.y;
+			id= id_T;
+			}
 		}
-		if(lengs[0][i]>lengs[1][i])
+
+		//выход после блока должен быть в количестве материала (номер и номер коллекции) и вектор нормали
+		ivec2 materialID;
+		vec3 norm;
+		if(leng.x==inf)
 		{
-			lengs[0][i]=lengs[1][i];
-			colors[0][i]=colors[1][i];
-			norm[0]=norm[1];
+			break;
 		}
-		if(lengs[0][i]> lengs[3][i])
+		else if(id.x==texelFetch(ContentAbout,ivec2(0,0),0).w)//если сфера
 		{
-			lengs[0][i]=lengs[3][i];
-			colors[0][i]=colors[3][i];
-			norm[0]=norm[3];
+		ivec4 in1 = texelFetch(ContentAbout,ivec2(0,0),0);
+		ivec4 in2 = texelFetch(ContentAbout,ivec2(0,0),0);
+		vec4 sphs1 = texelFetch(Content,ivec2(id.y*in1.y/4+in2.x/4,0),0);
+		norm = sphN(sphs1.yzw,me,lookTo,leng.x);
 		}
-		if(lengs[0][i]==inf)break;
-		//lengs[0][i]=lengs[0][i]-0.1;
-		norm[0]=norm[0]*sign(-dot(norm[0],lookTo));
-		me = me+lookTo*lengs[0][i];
-		lookTo = reflect(lookTo,norm[0]);
+		else if(id.x==texelFetch(ContentAbout,ivec2(2,0),0).w)//если коробка
+		{
+		ivec4 in1 = texelFetch(ContentAbout,ivec2(2,0),0);
+		ivec4 in2 = texelFetch(ContentAbout,ivec2(3,0),0);
+		}
+		else if(id.x==texelFetch(ContentAbout,ivec2(4,0),0).w)//если сфера
+		{
+		ivec4 in1 = texelFetch(ContentAbout,ivec2(4,0),0);
+		ivec4 in2 = texelFetch(ContentAbout,ivec2(5,0),0);
+		}
+
+
+
+
+		lengsum+=leng.x;
+
 	}
-
-	color = vec4(1,1,1,1)/2;
-	for (int i = j-1;i>-1;--i)
+	if(lengsum==0)
 	{
-		//i=2;
-		if(lengs[0][i]==inf)continue;
-		color=(color*0.3+colors[0][i])*(1.0-lengs[0][i]/10000)+vec4(1,1,1,1)*lengs[0][i]/10000;
-		//if(lengs[0][i]<10000)
-		//color=color+vec4(1,1,abs(sin(1+(lengs[2][i]))),0);
-		color = vec4(normalize(color.xyz),1);
+	return false;
 	}
-	return j!=0;
+
 
 }
 void main()

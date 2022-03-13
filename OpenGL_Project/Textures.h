@@ -128,7 +128,7 @@ class Textures
 {
 	Texture texes;
 	vector<float> compressedData;
-	vector<long>compressedDataAbout;
+	vector<long>compressedDataAbout,compressedMaterialAbout;
 	long long sizeData=0;
 	long maxTexSizeX=0, maxTexSizeY=0;
 	struct tex
@@ -146,7 +146,9 @@ class Textures
 		int funcionNumber;
 		long long  dataBegin;
 		long long  dataEnd;	//  [data)
+		long long materialIDBegin;
 		vector<float> data;
+		vector<long> matData;
 		DataAbout( long cellSize1, long cellCount1, int funcionNumber1,long long dataBegin1, float *data1) :
 			cellSize{cellSize1},cellCount{cellCount1},funcionNumber{funcionNumber1},dataBegin{dataBegin1}
 		{
@@ -158,13 +160,24 @@ class Textures
 				data.push_back(*(data1 + i));
 			}
 		}
+		void setMaterials(long long matIDBeg, long* matID, int* classID)
+		{
+			materialIDBegin = matIDBeg;
+			matData.reserve(cellCount * 2);
+			for (int i = 0; i < cellCount; ++i)
+			{
+				matData.push_back(classID[i]);
+				matData.push_back(matID[i]);
+
+			}
+		}
 		array <long long, 8> compress()
 		{
-			return array<long long, 8>{dataSize, cellSize, cellCount, funcionNumber, dataBegin, dataEnd,0,0};
+			return array<long long, 8>{dataSize, cellSize, cellCount, funcionNumber, dataBegin, dataEnd,materialIDBegin,0};
 		}
 	};
 	vector<DataAbout> vecDataAbout;
-	int contentid, aboutid, texesid;
+	int contentid, aboutid, texesid,aboutMatid;
 public:
 	Textures(ShProg& sdr) :
 		texes{ sdr }
@@ -178,16 +191,21 @@ public:
 		//texes.insDataTex<float, 2>(0, &compressedData[0], compressedData.size(), 1);
 
 		texes.setloc("ContentAbout");
-		aboutid=texes.createTex<GL_INT, GL_RGBA_INTEGER>(GL_TEXTURE_2D, GL_RGBA32I, compressedDataAbout.size()/4, 1);
+		aboutid = texes.createTex<GL_INT, GL_RGBA_INTEGER>(GL_TEXTURE_2D, GL_RGBA32I, compressedDataAbout.size() / 4, 1);
 		//texes.insDataTex<float, 2>(1, &compressedDataAbout[0], compressedDataAbout.size(), 1);
-
 
 		texes.setloc("texture_array");
 		texesid=texes.createTex(GL_TEXTURE_2D_ARRAY, GL_RGBA8, maxTexSizeX, maxTexSizeY, texData.size()/4);
 		//texes.insDataTex<float, 3>(2, &texData[0][0], maxTexSizeX,maxTexSizeY,texData.size());
+
+		texes.setloc("AboutMaterial");
+		aboutMatid = texes.createTex<GL_INT, GL_RGBA_INTEGER>(GL_TEXTURE_2D, GL_RGBA32I, compressedMaterialAbout.size() / 4, 1);
+		//texes.insDataTex<float, 2>(1, &compressedDataAbout[0], compressedDataAbout.size(), 1);
+
+
 	}
 
-	void addData( long cellSize1,long cellCount1, long functionNumber1,float* data1)
+	long addData( long cellSize1,long cellCount1, long functionNumber1,float* data1)
 	{
 		DataAbout timeTex{ cellSize1,cellCount1,functionNumber1,sizeData,data1 };
 		sizeData += timeTex.dataSize;
@@ -198,6 +216,13 @@ public:
 				return;
 			}
 		vecDataAbout.push_back(timeTex);
+		return vecDataAbout.size()-1;
+	}
+	void addMaterials(long long matIDBeg, long* matID, int* classID,long id = -1)
+	{
+		if (id == -1)
+			id = vecDataAbout.size() - 1;
+		vecDataAbout[id].setMaterials(matIDBeg, matID, classID);
 	}
 	int addTex(int height1, int width1, float* data1)
 	{
@@ -234,12 +259,16 @@ public:
 			for (auto j : i.data)
 				compressedData.push_back(j);
 			const array <long long, 8>& time{ i.compress() };
-			for (auto j : time) compressedDataAbout.push_back(j);
+			for (auto j : time)
+				compressedDataAbout.push_back(j);
+			for (auto j : i.matData)
+				compressedMaterialAbout.push_back(j);
 		}
 		if (isIns)
 		{
-		texes.insDataTex<float, 2>(contentid, &compressedData[0], compressedData.size()/4, 1);
-		texes.insDataTex<long, 2, GL_INT, GL_RGBA_INTEGER>(aboutid, &compressedDataAbout[0], compressedDataAbout.size()/4, 1);
+			texes.insDataTex<float, 2>(contentid, &compressedData[0], compressedData.size() / 4, 1);
+			texes.insDataTex<long, 2, GL_INT, GL_RGBA_INTEGER>(aboutid, &compressedDataAbout[0], compressedDataAbout.size() / 4, 1);
+			texes.insDataTex<long, 2, GL_INT, GL_RGBA_INTEGER>(aboutMatid, &compressedMaterialAbout[0], compressedMaterialAbout.size() / 4, 1);
 		}
 	}
 	void sendData();
@@ -251,5 +280,6 @@ public:
 		texes.sendTex(contentid);
 		texes.sendTex(aboutid);
 		texes.sendTex(texesid);
+		texes.sendTex(aboutMatid);
 	}
 };

@@ -12,6 +12,9 @@ class Box
 	std::array<float, 3> position;//x,y,z
 	bool isDefPosInTex;
 	const int size = SIZEbxh;
+
+	long materialID;
+	int materialClass;
 	std::pair<unsigned long, unsigned long> posInTex;
 public:
 	Box(float sizex=0, float sizey=0, float sizez=0, float x=0, float y=0, float z=0, float a1=0, float b1=0, float c1=0) :
@@ -25,6 +28,15 @@ public:
 		{
 			sicoss={ 0,1,0,1,0,1 };
 		}
+	}
+	void setMat(long long ID, int cl)
+	{
+		materialID = ID;
+		materialClass = cl;
+	}
+	std::array<long, 2> getMat()
+	{
+		return std::array<long, 2>{materialClass, (long)materialID};
 	}
 
 	std::array<float, SIZEbxh> get()

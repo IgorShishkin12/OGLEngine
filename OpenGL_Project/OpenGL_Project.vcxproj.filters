@@ -50,6 +50,9 @@
     <ClInclude Include="Polygon.h">
       <Filter>Файлы заголовков</Filter>
     </ClInclude>
+    <ClInclude Include="Materials.h">
+      <Filter>Файлы заголовков</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <None Include="shader3.vert">
