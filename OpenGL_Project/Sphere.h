@@ -6,16 +6,17 @@ class Sphere
 public:
 	float radius;
 	float x, y, z;
-	float xrot, yrot, zrot;
+	float xrot, yrot, zrot,wrot;
 	long materialID;
 	int materialClass;
 	const int size = 8;
-	Sphere(float radius1 = 1, float x1 = 0, float y1 = 0, float z1 = 0, float xrot1 = 0, float yrot1 = 0, float zrot1 = 0) :radius{ radius1 }, x{ x1 }, y{ y1 }, z{ z1 }, xrot{ xrot1 }, yrot{ yrot1 }, zrot{ zrot1 }
+	Sphere(float radius1 = 1, float x1 = 0, float y1 = 0, float z1 = 0, float xrot1 = 0, float yrot1 = 0, float zrot1 = 0, float wrot1 = 0) :
+		radius{ radius1 }, x{ x1 }, y{ y1 }, z{ z1 }, xrot{ xrot1 }, yrot{ yrot1 }, zrot{ zrot1 }, wrot{ wrot1 }
 	{
 	}
 	std::array<float, 8> getArr()
 	{
-		return std::array<float, 8>{radius, x, y, z, xrot, yrot, zrot, 0};
+		return std::array<float, 8>{radius, x, y, z, xrot, yrot, zrot, wrot};
 	}
 	void setMat(long long ID, int cl)
 	{

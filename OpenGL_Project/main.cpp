@@ -15,6 +15,7 @@
 #include "Sphere.h"
 #include"Textures.h"
 #include "Materials.h"
+#include "Polygon.h"
 //#include "stb_image.h"
 #include<array>
 #include <iostream>
@@ -111,9 +112,9 @@ int main()
 		vec.resize(4);//float radius=1, float x=0, float y=0, float z=0, float r=0, float g=0, float b=0, float a=1
 
 		vec[0] = Sphere{ 100,14,100,39,0,3,8 };
-		vec[0].setMat(0, 100);
+		vec[0].setMat(2, 100);
 		vec[1] = Sphere{ 50,14,-100,-39,9,3,2 };
-		vec[1].setMat(0, 100);
+		vec[1].setMat(1, 100);
 		vec[2] = Sphere{ 10,14,-100,200,0,3,0 };
 		vec[2].setMat(0, 100);
 		vec[3] = Sphere{ 45,-14,100,309,3,3,3 };/**/
@@ -121,41 +122,80 @@ int main()
 
 	}
 	vector<Box> vec2(2);//(float sizex=0, float sizey=0, float sizez=0, float x=0, float y=0, float z=0, float a1=0, float b1=0, float c1=0
-	vec2[0] = Box{ 80,8,900,100, 18,27,1 / 1,1 / 1, 1 / 1 };
-	vec2[1] = Box{ 7,80,90,10,7,50,1 / 9,1 / 1,1 / 8 };
+	{
+		vec2[0] = Box{ 80,8,900,100, 18,27,1 / 1,1 / 1, 1 / 1 };
+		vec2[0].setMat(2, 100);
+		vec2[1] = Box{ 7,80,90,10,7,50,1 / 9,1 / 1,1 / 8 };
+		vec2[1].setMat(2, 100);
+	}
+	vector<Triangle> vec3;
+	{
+		vec3.reserve(2);
+		vec3.push_back(Triangle{ 1,1,34,  45,65,23,  860,23,8 });
+		vec3.push_back(Triangle{ 19,23,22,  45,65,23,  86,230,8 });
+		vec3[0].setMat(0, 100);
+		vec3[0].setMat(1, 100);
+	}
 	vector<Material1> mats;
 	{
-		mats.reserve(1);
-		Material1 mat1{ 1,2,3 };
-		mats.push_back(mat1);
+		//mats.reserve(2);
+		mats.push_back(Material1{ 0,0,1 });
+		mats.push_back(Material1{ 0,1,0 });
+		mats.push_back(Material1{ 1,0,0 });
 	}
 	Textures tx{ ourShader };
 	vector <float> hans;
+	vector <long> hans2;
+	vector <int> hans3;
+	long long matBeg = 0;
 	{
 		for (auto& j : vec)
 		{
 			const auto& q{ j.getArr() };
 			for (auto z : q)hans.push_back(z);
+			hans2.push_back(j.materialID);
+			hans3.push_back(j.materialClass);
 		}
-		tx.addData(8, 4, 1, &hans[0]);
+		tx.addData(8, vec.size(), 1, &hans[0]);
+		tx.addMaterials(matBeg, &hans2[0], &hans3[0]);
 	}
 	{
 		hans.clear();
+		hans2.clear();
+		hans3.clear();
 		for (auto& j : vec2)
 		{
 			const auto& q = j.get();
 			for (auto z : q)hans.push_back(z);
+			hans2.push_back(j.materialID);
+			hans3.push_back(j.materialClass);
 		}
 		tx.addData(12, 2, 2, &hans[0]);
+		tx.addMaterials(matBeg, &hans2[0], &hans3[0]);
+	}
+	{
+		hans.clear();
+		hans2.clear();
+		hans3.clear();
+		for (auto& j : vec3)
+		{
+			const auto& q = j.get();
+			for (auto z : q)hans.push_back(z);
+			hans2.push_back(j.materialID);
+			hans3.push_back(j.materialClass);
+		}
+		tx.addData(12, vec3.size(), 3, &hans[0]);
+		tx.addMaterials(matBeg, &hans2[0], &hans3[0]);
 	}
 	{
 		hans.clear();
 		for (auto& j : mats)
-		{
+		{ 
 			const auto& q = j.getData();
 			for (auto z : q)hans.push_back(z);
 		}
-		tx.addData(8, 1, 100, &hans[0]);
+		tx.addData(8, mats.size(), 100, &hans[0]);
+		tx.addMaterials(matBeg, &hans2[0], &hans3[0]);//случайное наполнение
 	}
 	tx.compressData(0);
 	tx.createTexes();

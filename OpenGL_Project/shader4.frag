@@ -10,10 +10,10 @@ precision mediump float;
 layout (location = 105) uniform ivec2 u_resolution;
 layout (location = 100) uniform vec3 me1;
 layout (location = 101) uniform vec4 mouse;
-layout (location = 10) uniform sampler2DArray texture_array;//88ff штук максимум
 layout (location = 8)uniform sampler2D Content;
 layout (location = 9)uniform isampler2D ContentAbout;
-layout (location = 10)uniform isampler2D AboutMaterial;
+layout (location = 10) uniform sampler2DArray texture_array;//88ff штук максимум
+layout (location = 11)uniform isampler2D AboutMaterial;
 const float inf = abs(1.0/0.0);
 out vec4 out_gl_FragColor;
 
@@ -202,9 +202,11 @@ bool getSphClr(in vec3 me,in vec3 lookTo,in ivec4 in1, in ivec4 in2, out float l
 	float distan1,distan2,radiusSph,lenNow = inf;
 	len = lenNow;
 	vec3 sphCen;
-	int iNow = in1.x;
+	//int iNow = in1.x;
 	if(in1.x/4==0) return false;
-	for (int i = in2.x/4;i<in2.y/4;i=i+in1.y/4)
+	int id_T=0;
+	for (int i = in2.x/4;i<in2.y/4; i=i+in1.y/4,
+									id_T++		)
 	{
 		sphs1 = texelFetch(Content,ivec2(i,0),0);
 		sphs2 = texelFetch(Content,ivec2(i+1,0),0);
@@ -225,11 +227,11 @@ bool getSphClr(in vec3 me,in vec3 lookTo,in ivec4 in1, in ivec4 in2, out float l
 		if(lenNow < len)
 		{
 			len = lenNow;
-			iNow = i;
+			id = id_T;
 		}
 	}
 	if (len==inf) return false;
-	id = (iNow-in2.x/4)*4/in1.y;
+	//id = (iNow-in2.x/4)*4/in1.y;
 //	color = normalize(vec4(texelFetch(Content,ivec2(iNow+1,0),0).xyz,1.0));
 //	normal = sphN(texelFetch(Content,ivec2(iNow,0),0).yzw,me,lookTo,len);
 	return true;
@@ -238,10 +240,10 @@ bool getSphClr(in vec3 me,in vec3 lookTo,in ivec4 in1, in ivec4 in2, out float l
 bool RTX(in vec3 me,in vec3 lookTo,  out vec4 color)
 {
 	float lengsum = 0;
-	for(int i = 0;i<4;++i)
+	for(int i = 0;i<1;++i)
 	{
 		vec2 leng=vec2(inf,inf);
-		ivec2 id,id_T;
+		ivec2 id,id_T;//в переменной id должно находитс€ первым символом номер искомой функции, вторым-последовательный номер в наборе из этих функций где перва€-0
 		id_T.x=texelFetch(ContentAbout,ivec2(0,0),0).w;
 		if(getSphClr(me,lookTo,texelFetch(ContentAbout,ivec2(0,0),0),texelFetch(ContentAbout,ivec2(1,0),0),leng.y,id_T.y)) 
 		{
@@ -252,6 +254,7 @@ bool RTX(in vec3 me,in vec3 lookTo,  out vec4 color)
 			}
 
 		}
+		leng.y = inf;
 		id_T.x=texelFetch(ContentAbout,ivec2(2,0),0).w;
 		if(getBoxClr(me,lookTo,texelFetch(ContentAbout,ivec2(2,0),0),texelFetch(ContentAbout,ivec2(3,0),0),leng.y,id_T.y))
 		{
@@ -262,6 +265,7 @@ bool RTX(in vec3 me,in vec3 lookTo,  out vec4 color)
 			}
 
 		}
+		leng.y = inf;
 		
 		id_T.x=texelFetch(ContentAbout,ivec2(4,0),0).w;
 		if(getTriColor(me,lookTo,texelFetch(ContentAbout,ivec2(4,0),0),texelFetch(ContentAbout,ivec2(5,0),0),leng.y,id_T.y))
@@ -271,10 +275,12 @@ bool RTX(in vec3 me,in vec3 lookTo,  out vec4 color)
 			leng.x=leng.y;
 			id= id_T;
 			}
+//			color = normalize(vec4(sin(leng.y),2,2,1));
+//			break;
 		}
 
 		//выход после блока должен быть в количестве материала (номер и номер коллекции) и вектор нормали
-		ivec2 materialID;
+		ivec2 materialID = ivec2(0,0);
 		vec3 norm;
 		if(leng.x==inf)
 		{
@@ -282,23 +288,60 @@ bool RTX(in vec3 me,in vec3 lookTo,  out vec4 color)
 		}
 		else if(id.x==texelFetch(ContentAbout,ivec2(0,0),0).w)//если сфера
 		{
-		ivec4 in1 = texelFetch(ContentAbout,ivec2(0,0),0);
-		ivec4 in2 = texelFetch(ContentAbout,ivec2(0,0),0);
-		vec4 sphs1 = texelFetch(Content,ivec2(id.y*in1.y/4+in2.x/4,0),0);
-		norm = sphN(sphs1.yzw,me,lookTo,leng.x);
+			ivec4 in1 = texelFetch(ContentAbout,ivec2(0,0),0);
+			ivec4 in2 = texelFetch(ContentAbout,ivec2(1,0),0);
+			vec4 sphs1 = texelFetch(Content,ivec2(id.y*in1.y/4+in2.x/4,0),0);
+			materialID.x= in2.z;
+			norm = sphN(sphs1.yzw,me,lookTo,leng.x);
 		}
 		else if(id.x==texelFetch(ContentAbout,ivec2(2,0),0).w)//если коробка
 		{
-		ivec4 in1 = texelFetch(ContentAbout,ivec2(2,0),0);
-		ivec4 in2 = texelFetch(ContentAbout,ivec2(3,0),0);
+			ivec4 in1 = texelFetch(ContentAbout,ivec2(2,0),0);
+			ivec4 in2 = texelFetch(ContentAbout,ivec2(3,0),0);
+			break;
 		}
-		else if(id.x==texelFetch(ContentAbout,ivec2(4,0),0).w)//если сфера
+		else if(id.x==texelFetch(ContentAbout,ivec2(4,0),0).w)//если треугольник
 		{
-		ivec4 in1 = texelFetch(ContentAbout,ivec2(4,0),0);
-		ivec4 in2 = texelFetch(ContentAbout,ivec2(5,0),0);
+			ivec4 in1 = texelFetch(ContentAbout,ivec2(4,0),0);
+			ivec4 in2 = texelFetch(ContentAbout,ivec2(5,0),0);
+			break;
 		}
 
+		//поиск значени€ искомого материала
+		{
+			ivec4 qt= texelFetch(AboutMaterial,ivec2((materialID.x+id.y*2)/4,0),0);
+			if((materialID.x/2+id.y)%2==1)
+			{
+				materialID=qt.zw;
+			}
+			else
+				materialID=qt.xy;
+		}
+		//вытаскивание номера в последовательности по номеру функции
+		{
+			for(int i = 0; i<100;i+=2)
+			{
+				if(texelFetch(ContentAbout,ivec2(i,0),0).w==materialID.x)
+				{
+					materialID.x=i;
+					break;
+				}
+			}
 
+		}
+		//materialID сейчас представл€т указатель* на описание класса в ContentAbout и номер в этом классе в текстуре content
+		if(texelFetch(ContentAbout,ivec2(materialID.x,0),0).w==100)
+		//if(materialID.x==6)
+		{
+			ivec4 in_T = texelFetch(ContentAbout,ivec2(materialID.x,0),0);
+			ivec4 in_T2 = texelFetch(ContentAbout,ivec2(materialID.x+1,0),0);
+																		/*всмысле *8/4 и € решил не подставл€ть размер €чейки из описани€ класса */
+			color = vec4(   normalize(texelFetch(Content,ivec2(   (in_T2.x+materialID.y*in_T.y)/4   ,0),0).xyz),1   );
+//			if(materialID.x==6)
+//			color = normalize(vec4(1,0,0,1));
+		}
+		else
+			color = normalize(vec4(0,0,1,1));
 
 
 		lengsum+=leng.x;
@@ -308,6 +351,7 @@ bool RTX(in vec3 me,in vec3 lookTo,  out vec4 color)
 	{
 	return false;
 	}
+	return true;
 
 
 }
@@ -324,18 +368,18 @@ void main()
 	}
 	else
 	{
-		vec4 clr2=vec4(0,0,0,0);
-		//out_gl_FragColor = vec4(normalize(vec3(2.0,1.0,0.0)),1.0);
-		clr2 = texelFetch(Content,ivec2(0,0),0);
-		//clr2 = texture2DArray(texture_array, vec3(0,0,0));
-		if(clr2 == vec4(0.1,0.2,0.3,0.8))
-		clr2 = vec4(1,0,0,1);
-		else
-		clr2 = clr2;
-		//clr2 = vec4(0,1,0,1);
-		//if(out_gl_FragColor==vec4(0,0,0,0))
+//		vec4 clr2=vec4(0,0,0,0);
+//		//out_gl_FragColor = vec4(normalize(vec3(2.0,1.0,0.0)),1.0);
+//		clr2 = texelFetch(Content,ivec2(0,0),0);
+//		//clr2 = texture2DArray(texture_array, vec3(0,0,0));
+//		if(clr2 == vec4(0.1,0.2,0.3,0.8))
+//		clr2 = vec4(1,0,0,1);
+//		else
+//		clr2 = clr2;
+//		//clr2 = vec4(0,1,0,1);
+//		//if(out_gl_FragColor==vec4(0,0,0,0))
 		
-		out_gl_FragColor = vec4(normalize(vec3(clr2.xyz)),1.0);
+		out_gl_FragColor = vec4(normalize(vec3(1,3,5)),1.0);
 	}
 //if(gl_FragCoord.x<u_resolution.x/2)
 //out_gl_FragColor = vec4(1,1,0,1);

@@ -13,10 +13,10 @@ class Box
 	bool isDefPosInTex;
 	const int size = SIZEbxh;
 
-	long materialID;
-	int materialClass;
 	std::pair<unsigned long, unsigned long> posInTex;
 public:
+	long materialID;
+	int materialClass;
 	Box(float sizex=0, float sizey=0, float sizez=0, float x=0, float y=0, float z=0, float a1=0, float b1=0, float c1=0) :
 		a{ a1 }, b{ b1 }, c{ c1 }, sizes{ sizex,sizey,sizez }, position{ x,y,z }
 	{

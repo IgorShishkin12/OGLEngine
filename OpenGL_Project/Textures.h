@@ -160,12 +160,13 @@ class Textures
 				data.push_back(*(data1 + i));
 			}
 		}
-		void setMaterials(long long matIDBeg, long* matID, int* classID)
+		void setMaterials(long long &matIDBeg, long* matID, int* classID)
 		{
 			materialIDBegin = matIDBeg;
+			matIDBeg += cellCount * 2;
 			matData.reserve(cellCount * 2);
 			for (int i = 0; i < cellCount; ++i)
-			{
+			{ 
 				matData.push_back(classID[i]);
 				matData.push_back(matID[i]);
 
@@ -199,7 +200,7 @@ public:
 		//texes.insDataTex<float, 3>(2, &texData[0][0], maxTexSizeX,maxTexSizeY,texData.size());
 
 		texes.setloc("AboutMaterial");
-		aboutMatid = texes.createTex<GL_INT, GL_RGBA_INTEGER>(GL_TEXTURE_2D, GL_RGBA32I, compressedMaterialAbout.size() / 4, 1);
+		aboutMatid = texes.createTex<GL_INT, GL_RGBA_INTEGER>(GL_TEXTURE_2D, GL_RGBA32I, ceil(compressedMaterialAbout.size() / 4.0), 1);
 		//texes.insDataTex<float, 2>(1, &compressedDataAbout[0], compressedDataAbout.size(), 1);
 
 
@@ -212,17 +213,19 @@ public:
 		for(auto &i : vecDataAbout)
 			if (i.funcionNumber == functionNumber1)
 			{
-				i = timeTex;
-				return;
+				//i = timeTex;
+				std::cerr << "you truying to edit with function for adding\n";
+				exit(-1);
 			}
 		vecDataAbout.push_back(timeTex);
 		return vecDataAbout.size()-1;
 	}
-	void addMaterials(long long matIDBeg, long* matID, int* classID,long id = -1)
+	void addMaterials(long long& matIDBeg, long* matID, int* classID,long id = -1)
 	{
 		if (id == -1)
 			id = vecDataAbout.size() - 1;
 		vecDataAbout[id].setMaterials(matIDBeg, matID, classID);
+		
 	}
 	int addTex(int height1, int width1, float* data1)
 	{
@@ -254,6 +257,7 @@ public:
 	{
 		compressedData.clear();
 		compressedDataAbout.clear();
+		compressedMaterialAbout.clear();
 		for (auto& i : vecDataAbout)
 		{
 			for (auto j : i.data)
@@ -264,11 +268,12 @@ public:
 			for (auto j : i.matData)
 				compressedMaterialAbout.push_back(j);
 		}
+
 		if (isIns)
 		{
 			texes.insDataTex<float, 2>(contentid, &compressedData[0], compressedData.size() / 4, 1);
 			texes.insDataTex<long, 2, GL_INT, GL_RGBA_INTEGER>(aboutid, &compressedDataAbout[0], compressedDataAbout.size() / 4, 1);
-			texes.insDataTex<long, 2, GL_INT, GL_RGBA_INTEGER>(aboutMatid, &compressedMaterialAbout[0], compressedMaterialAbout.size() / 4, 1);
+			texes.insDataTex<long, 2, GL_INT, GL_RGBA_INTEGER>(aboutMatid, &compressedMaterialAbout[0], ceil(compressedMaterialAbout.size()/ 4.0), 1);
 		}
 	}
 	void sendData();
