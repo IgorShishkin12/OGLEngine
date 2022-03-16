@@ -124,9 +124,9 @@ int main()
 	vector<Box> vec2(2);//(float sizex=0, float sizey=0, float sizez=0, float x=0, float y=0, float z=0, float a1=0, float b1=0, float c1=0
 	{
 		vec2[0] = Box{ 80,8,900,100, 18,27,1 / 1,1 / 1, 1 / 1 };
-		vec2[0].setMat(2, 100);
+		vec2[0].setMat(1, 100);
 		vec2[1] = Box{ 7,80,90,10,7,50,1 / 9,1 / 1,1 / 8 };
-		vec2[1].setMat(2, 100);
+		vec2[1].setMat(0, 100);
 	}
 	vector<Triangle> vec3;
 	{

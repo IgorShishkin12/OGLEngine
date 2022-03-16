@@ -31,7 +31,7 @@ bool isSphereIntersect( in vec3 rayOrigin, in vec3 rayDirection, in vec3 center,
 	return true;
 }
  
-bool isBoxIntersect( in vec3 rayOrigin, in vec3 rayDirection,in vec3 boxSize, out vec3 outNormal,out float toNear) 
+bool isBoxIntersect( in vec3 rayOrigin, in vec3 rayDirection,in vec3 boxSize, out vec3 outNormal,out float toNear, bool isN) 
 {
 
 	float toFar;
@@ -43,7 +43,10 @@ bool isBoxIntersect( in vec3 rayOrigin, in vec3 rayDirection,in vec3 boxSize, ou
 	toNear = max( max( t1.x, t1.y ), t1.z );
 	toFar = min( min( t2.x, t2.y ), t2.z );
 	if( toNear>toFar || toFar<0.0 || toNear<0.0) return false;
-	outNormal = -sign(rayDirection)*step(t1.yzx,t1.xyz)*step(t1.zxy,t1.xyz);
+	if(isN)
+		outNormal = -sign(rayDirection)*step(t1.yzx,t1.xyz)*step(t1.zxy,t1.xyz);
+	else
+		outNormal=vec3(0,0,0);
 	return true;
 }
 
@@ -101,15 +104,16 @@ vec3 unrotate(vec3 inpt,vec2 rx,vec2 ry,vec2 rz)
 		0,0,1
 	));
 }
-bool getBoxClr1(in vec3 me,in vec3 lookTo,in vec3 boxSize,in vec4 boxRotxy,in vec2 boxRotz, in vec3 boxOrigin, out float len, out vec3 norm)
+bool getBoxClr1(in vec3 me,in vec3 lookTo,in vec3 boxSize,in vec4 boxRotxy,in vec2 boxRotz, in vec3 boxOrigin, out float len)
 {
 	me = me-boxOrigin;
 	me=rotate(me,boxRotxy.xy,boxRotxy.zw,boxRotz);
 	lookTo=rotate(lookTo,boxRotxy.xy,boxRotxy.zw,boxRotz);
+	vec3 norm;
 	bool ans;
-	ans = isBoxIntersect(me,lookTo,boxSize,norm,len);
+	ans = isBoxIntersect(me,lookTo,boxSize,norm,len,false);
 	if(ans==false) return false;
-	norm = unrotate(norm,boxRotxy.xy,boxRotxy.zw,boxRotz);
+	//norm = unrotate(norm,boxRotxy.xy,boxRotxy.zw,boxRotz);
 	return true;
 }
 bool getBoxClr(in vec3 me,in vec3 lookTo,in ivec4 in1, in ivec4 in2,out float len/*, out vec3 norm,out vec4 color*/,out int id)
@@ -119,28 +123,30 @@ bool getBoxClr(in vec3 me,in vec3 lookTo,in ivec4 in1, in ivec4 in2,out float le
 	vec4 sphs1,sphs2,sphs3;
 	float lenNow = inf;
 	len = lenNow;
-	vec3 normAns;
-	int iNow = in1.x;
+	//vec3 normAns;
+	//int iNow = in1.x;
+	int id_T = 0;
 	if(in1.x/4==0) return false;
-	for (int i = in2.x/4;i<in2.y/4;i=i+in1.y/4)
+	for (int i = in2.x/4;i<in2.y/4;i=i+in1.y/4,
+									id_T++)
 	{//sicoss[0], sicoss[1], sicoss[2], sicoss[3], sicoss[4], sicoss[5],sizes[0],sizes[1],sizes[2],position[0],position[1],position[2] 
 		sphs1 = texelFetch(Content,ivec2(i,0),0);
 		sphs2 = texelFetch(Content,ivec2(i+1,0),0);
 		sphs3 = texelFetch(Content,ivec2(i+2,0),0);
-		if(!getBoxClr1(me,lookTo,vec3(sphs2.zw,sphs3.x),sphs1,sphs2.xy,sphs3.yzw,lenNow,norm))
+		if(!getBoxClr1(me,lookTo,vec3(sphs2.zw,sphs3.x),sphs1,sphs2.xy,sphs3.yzw,lenNow))
 			continue;
 		else if(len>lenNow)
 		{
 			len=lenNow;
-			iNow=i;
-			normAns=norm;
+			id = id_T;
+			//normAns=norm;
 		}
 		else
 			continue;
 	}
 	if (len==inf) return false;
-	norm=normAns;
-	id = (iNow-in2.x/4)*4/in1.y;
+	//norm=normAns;
+	//id = (iNow-in2.x/4)*4/in1.y;
 	//color = vec4(normalize(texelFetch(Content,ivec2(iNow+0,0),0).xyz),0);
 	return true;
 }
@@ -240,7 +246,7 @@ bool getSphClr(in vec3 me,in vec3 lookTo,in ivec4 in1, in ivec4 in2, out float l
 bool RTX(in vec3 me,in vec3 lookTo,  out vec4 color)
 {
 	float lengsum = 0;
-	for(int i = 0;i<1;++i)
+	for(int i = 0;i<2;++i)
 	{
 		vec2 leng=vec2(inf,inf);
 		ivec2 id,id_T;//в переменной id должно находится первым символом номер искомой функции, вторым-последовательный номер в наборе из этих функций где первая-0
@@ -298,12 +304,16 @@ bool RTX(in vec3 me,in vec3 lookTo,  out vec4 color)
 		{
 			ivec4 in1 = texelFetch(ContentAbout,ivec2(2,0),0);
 			ivec4 in2 = texelFetch(ContentAbout,ivec2(3,0),0);
-			break;
+			materialID.x= in2.z;
+
+
+			//break;
 		}
 		else if(id.x==texelFetch(ContentAbout,ivec2(4,0),0).w)//если треугольник
 		{
 			ivec4 in1 = texelFetch(ContentAbout,ivec2(4,0),0);
 			ivec4 in2 = texelFetch(ContentAbout,ivec2(5,0),0);
+			materialID.x= in2.z;
 			break;
 		}
 
@@ -330,20 +340,30 @@ bool RTX(in vec3 me,in vec3 lookTo,  out vec4 color)
 
 		}
 		//materialID сейчас представлят указатель* на описание класса в ContentAbout и номер в этом классе в текстуре content
+		vec4 color_t;
 		if(texelFetch(ContentAbout,ivec2(materialID.x,0),0).w==100)
-		//if(materialID.x==6)
 		{
 			ivec4 in_T = texelFetch(ContentAbout,ivec2(materialID.x,0),0);
 			ivec4 in_T2 = texelFetch(ContentAbout,ivec2(materialID.x+1,0),0);
-																		/*всмысле *8/4 и я решил не подставлять размер ячейки из описания класса */
-			color = vec4(   normalize(texelFetch(Content,ivec2(   (in_T2.x+materialID.y*in_T.y)/4   ,0),0).xyz),1   );
-//			if(materialID.x==6)
-//			color = normalize(vec4(1,0,0,1));
+			color_t = vec4(   normalize(texelFetch(Content,ivec2(   (in_T2.x+materialID.y*in_T.y)/4   ,0),0).xyz),1   );
 		}
 		else
-			color = normalize(vec4(0,0,1,1));
+			color_t = normalize(vec4(0,0,1,1));
 
+		{
+			color = color+color_t*pow(0.5,i);
+		}
+		{
+			//отражение
+			me = me + lookTo*leng.x;
+			lookTo = reflect(lookTo,norm);
 
+			//освещение
+			//мы смотрим на сколько вектор нормали конечный отличается от угла падения света и умножаем свет на это число
+			float isLig = dot(lookTo,vec3(0,0,1));
+			if(isLig<0) isLig = 0;
+			color = color*isLig;
+		}
 		lengsum+=leng.x;
 
 	}
