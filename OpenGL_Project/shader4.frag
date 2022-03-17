@@ -302,9 +302,10 @@ vec3 RVwDPX(in vec3 v, in float x,in float maxTanDiff) //random vector with diff
 	//функция перевода рандомного числа в угол такая так как https://umath.ru/calc/graph/?&func=acos(x%5E(1/20));
 	//cos(acos((fract(random()))^(1/x)))
 	// ans = v;
-//	if(maxTanDiff<epsilon)
-//	return v;
-	return normalize(v + ROwVaL(v,length(v)*	min(tan(acos(		(pow(fract(random()),1.0/x))	)),maxTanDiff)	));
+	float maxL = length(v)*	min(tan(acos(		(pow(fract(random()),1.0/x))	)),maxTanDiff);
+	if(maxL<epsilon)
+	return v;
+	return normalize(v + ROwVaL(v,maxL));
 }
 bool RTX(in vec3 me,in vec3 lookTo,  out vec4 color)
 {
