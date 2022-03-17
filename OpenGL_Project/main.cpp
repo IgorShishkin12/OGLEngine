@@ -9,6 +9,7 @@
 #include <GLFW/glfw3.h>
 #include <Windows.h>
 #include <math.h>
+//#include <time.h>
 
 #include "shader.h"
 #include "Matrix.h"
@@ -19,6 +20,7 @@
 //#include "stb_image.h"
 #include<array>
 #include <iostream>
+
 void framebuffer_size_callback(GLFWwindow* window, int width, int height);
 void processInput(GLFWwindow* window);
 bool isMove(GLFWwindow* window, float* arr);
@@ -105,6 +107,7 @@ int main()
 	int ID_coords = glGetUniformLocation(ourShader.getID(), "me1");
 	std::array <float, 4> mice2{ 0,1,0,1 };
 	int ID_mice = glGetUniformLocation(ourShader.getID(), "mouse");
+	int time_GLSL = glGetUniformLocation(ourShader.getID(), "time");
 
 	constexpr int sizex = 8, sizey = 1;
 	vector<Sphere> vec;
@@ -139,7 +142,7 @@ int main()
 	vector<Material1> mats;
 	{
 		//mats.reserve(2);
-		mats.push_back(Material1{ 0,0,1 });
+		mats.push_back(Material1{ 0,0,200,1,0.1 });
 		mats.push_back(Material1{ 0,1,0 });
 		mats.push_back(Material1{ 1,0,0 });
 	}
@@ -204,18 +207,18 @@ int main()
 	{
 		// Обработка ввода
 		processInput(window);
-
+		//__rdtsc();
 		// Рендеринг
 		glClearColor(0.0f, 0.0f, 0.0f, 1.0f);
 		glClear(GL_COLOR_BUFFER_BIT);
-
-
 		ourShader.use();
 		glBindVertexArray(VAO);
 		glDrawElements(GL_TRIANGLES, 6, GL_UNSIGNED_INT, 0);
 		mice2 = mouse();
 		sendWindowP(window, ourShader);
 		glUniform4f(ID_mice, mice2[0], mice2[1], mice2[2], mice2[3]);
+		long double time_now = __rdtsc();
+		glUniform1f(time_GLSL, cos(time_now/10000));
 		tx.send();
 		if (isMove(window, moveCrd))
 		{

@@ -4,15 +4,16 @@ class Material1
 {
 	float r, g, b;
 	float reflectability;
+	float maxTanDiff;
 public:
-	Material1(float r1,float g1,float b1,float reflectability1=1):
-		r{ r1 }, g{ g1 }, b{ b1 },  reflectability{ reflectability1 }
+	Material1(float r1, float g1, float b1, float reflectability1 = 99999, float MTD = 0.0) :
+		r{ r1 }, g{ g1 }, b{ b1 },  reflectability{ reflectability1 },maxTanDiff{MTD}
 	{
 
 	}
 	std::array<float, 8> getData()
 	{
-		return std::array<float, 8> {r, g, b, 0, reflectability, 0, 0, 0};
+		return std::array<float, 8> {r, g, b, 0, reflectability, maxTanDiff, 0, 0};
 	}
 };
 //brc for bright parameter

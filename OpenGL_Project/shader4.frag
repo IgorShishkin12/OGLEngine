@@ -8,6 +8,7 @@ precision mediump float;
 #endif
 
 layout (location = 105) uniform ivec2 u_resolution;
+layout (location = 106) uniform float time;
 layout (location = 100) uniform vec3 me1;
 layout (location = 101) uniform vec4 mouse;
 layout (location = 8)uniform sampler2D Content;
@@ -15,8 +16,32 @@ layout (location = 9)uniform isampler2D ContentAbout;
 layout (location = 10) uniform sampler2DArray texture_array;//88ff штук максимум
 layout (location = 11)uniform isampler2D AboutMaterial;
 const float inf = abs(1.0/0.0);
+const float epsilon = 10e-6;
+const float epsilon2 = 10e-3;
 out vec4 out_gl_FragColor;
+float seed = 13746.785*gl_FragCoord.y/(gl_FragCoord.x+time)/**length(me1)+time*/;
 
+float random()
+{
+	//seed =fract(tan(dot(vec2(cos(seed*34),tan(967/seed)), vec2(seed+45,atan(133.2345/seed)))*pow(3.42342,seed)));
+	 //seed = fract(cos(1./fract(sin(1./fract(tan(seed))))));
+//	 const float max_att = 2;
+//	 for(float i = 0.0;i<max_att;i=i+1)
+//	 {
+//		seed = 1/((max_att+10-i)*fract(seed+i+55));
+//	 }
+    //seed = fract(sin(dot(vec2(1./seed,seed),vec2(10,0.1)))*144.0);
+	seed = fract(sin(dot(vec2(seed/gl_FragCoord),
+                         vec2(12.9898,78.233)))*
+        43758.5453123);
+	return seed;
+}
+vec2 random2()
+{
+return vec2(random(),random());
+}
+vec3 random3()
+{return vec3(random(),random(),random());}
 bool isSphereIntersect( in vec3 rayOrigin, in vec3 rayDirection, in vec3 center, in float radius, out float distance1,out float distance2 )
 {
 	vec3  originCenter = rayOrigin - center;
@@ -31,7 +56,17 @@ bool isSphereIntersect( in vec3 rayOrigin, in vec3 rayDirection, in vec3 center,
 	return true;
 }
  
-bool isBoxIntersect( in vec3 rayOrigin, in vec3 rayDirection,in vec3 boxSize, out vec3 outNormal,out float toNear, bool isN) 
+bool isBoxIntersectN( in vec3 rayOrigin, in vec3 rayDirection,in vec3 boxSize, out vec3 outNormal) 
+{
+	vec3 m = 1.0/rayDirection;//непонятная часть это непереводимая игра слов вследствие рефакторинга
+	vec3 n = m*rayOrigin;
+	vec3 k = abs(m)*boxSize;
+	vec3 t1 = -n - k;
+	vec3 t2 = -n + k;
+	outNormal = -sign(rayDirection)*step(t1.yzx,t1.xyz)*step(t1.zxy,t1.xyz);
+	return true;
+}
+bool isBoxIntersect( in vec3 rayOrigin, in vec3 rayDirection,in vec3 boxSize, out float toNear) 
 {
 
 	float toFar;
@@ -43,29 +78,29 @@ bool isBoxIntersect( in vec3 rayOrigin, in vec3 rayDirection,in vec3 boxSize, ou
 	toNear = max( max( t1.x, t1.y ), t1.z );
 	toFar = min( min( t2.x, t2.y ), t2.z );
 	if( toNear>toFar || toFar<0.0 || toNear<0.0) return false;
-	if(isN)
-		outNormal = -sign(rayDirection)*step(t1.yzx,t1.xyz)*step(t1.zxy,t1.xyz);
-	else
-		outNormal=vec3(0,0,0);
 	return true;
 }
 
 bool isTriIntersect( in vec3 rayOrigin, in vec3 rayDirection, in vec3 v0, in vec3 v1, in vec3 v2,out float ans,out vec3 normal0 )
 {
-	if(dot(v0-rayOrigin,rayDirection)<0&&dot(v1-rayOrigin,rayDirection)<0&&dot(v2-rayOrigin,rayDirection)<0)return false;
+	//if(dot(v0-rayOrigin,rayDirection)<0&&dot(v1-rayOrigin,rayDirection)<0&&dot(v2-rayOrigin,rayDirection)<0)return false;
     vec3 v01 = v1 - v0;
     vec3 v02 = v2 - v0;
-    vec3 rayOrigin0 =rayOrigin - v0;
+    vec3 rayOrigin0 = rayOrigin - v0;
     normal0 = cross( v01, v02 );
+	//normal0 = normal0*(-sign(dot(normal0,rayDirection)));
     vec3  q = cross( rayOrigin0, rayDirection );
     float d = 1.0/dot( rayDirection,normal0 );
+	//if(abs(d)>10e6)return false;
+	if(dot(normal0,rayOrigin0)/dot(normal0,rayDirection)>0.001)return false;//если луч уходит от треугольника
     float u = d*dot( -q, v02 );
     float v = d*dot(  q, v01 );
-    float t = d*dot( -normal0, rayOrigin0 );
-    if( u<0.0 || u>1.0 || v<0.0 || (u+v)>1.0 ) return false;
+    float t = d*dot( -normal0, rayOrigin0 );//можно заменить т на анс
+    if( u<0.0 || v<0.0 || (u+v)>1.0 ) return false;
 	//t=dot(v0-rayOrigin,rayDirection);
 	//ans =  vec3( t, u, v );
 	ans = t;
+	//if(ans<0) return false;
     return true;
 }
 vec3 rotate(vec3 inpt,vec2 rx,vec2 ry,vec2 rz)
@@ -109,9 +144,8 @@ bool getBoxClr1(in vec3 me,in vec3 lookTo,in vec3 boxSize,in vec4 boxRotxy,in ve
 	me = me-boxOrigin;
 	me=rotate(me,boxRotxy.xy,boxRotxy.zw,boxRotz);
 	lookTo=rotate(lookTo,boxRotxy.xy,boxRotxy.zw,boxRotz);
-	vec3 norm;
 	bool ans;
-	ans = isBoxIntersect(me,lookTo,boxSize,norm,len,false);
+	ans = isBoxIntersect(me,lookTo,boxSize,len);
 	if(ans==false) return false;
 	//norm = unrotate(norm,boxRotxy.xy,boxRotxy.zw,boxRotz);
 	return true;
@@ -139,7 +173,7 @@ bool getBoxClr(in vec3 me,in vec3 lookTo,in ivec4 in1, in ivec4 in2,out float le
 		{
 			len=lenNow;
 			id = id_T;
-			//normAns=norm;
+			//normAns=norm; v
 		}
 		else
 			continue;
@@ -242,11 +276,40 @@ bool getSphClr(in vec3 me,in vec3 lookTo,in ivec4 in1, in ivec4 in2, out float l
 //	normal = sphN(texelFetch(Content,ivec2(iNow,0),0).yzw,me,lookTo,len);
 	return true;
 }
+void orthogonalVs(in vec3 v1, out vec3 v2, out vec3 v3)
+{
+	//vec3 randomVec =  normalize(max(vec3(0,0,1)*length(cross(vec3(0,0,1),v1)),vec3(0,1,0)*length(cross(vec3(0,1,0),v1))));//рандомный вектор, неколинеарный с данным
+	vec3 randomVec = vec3(2,random2());
+	if(length(cross(vec3(0,0,1),v1))<=0)
+		randomVec = -1.0/randomVec;
+	v2 = normalize(cross(randomVec,v1));
+	v3 = normalize(cross(v1,v2));
+//	if(dot(v1,v2)>epsilon||dot(v1,v3)>epsilon||dot(v2,v3)>epsilon)
+//	{v2 = vec3(0,0,0);
+//	v3=vec3(0,0,0);}
 
+}
+vec3 ROwVaL(in vec3 v, in float l)//random orthogonal with vector and length
+{
+	vec3 v1,v2;
+	vec2 rand = random2();
+	orthogonalVs(v,v1,v2);
+	return normalize(v1*rand.x+v2*rand.y)*l;
+}
+vec3 RVwDPX(in vec3 v, in float x,in float maxTanDiff) //random vector with difference probability x
+{
+	//max tan diff for max parameter of (delta vector)/lenght(v)
+	//функция перевода рандомного числа в угол такая так как https://umath.ru/calc/graph/?&func=acos(x%5E(1/20));
+	//cos(acos((fract(random()))^(1/x)))
+	// ans = v;
+//	if(maxTanDiff<epsilon)
+//	return v;
+	return normalize(v + ROwVaL(v,length(v)*	min(tan(acos(		(pow(fract(random()),1.0/x))	)),maxTanDiff)	));
+}
 bool RTX(in vec3 me,in vec3 lookTo,  out vec4 color)
 {
 	float lengsum = 0;
-	for(int i = 0;i<2;++i)
+	for(int i = 0;i<4;++i)
 	{
 		vec2 leng=vec2(inf,inf);
 		ivec2 id,id_T;//в переменной id должно находится первым символом номер искомой функции, вторым-последовательный номер в наборе из этих функций где первая-0
@@ -290,9 +353,10 @@ bool RTX(in vec3 me,in vec3 lookTo,  out vec4 color)
 		vec3 norm;
 		if(leng.x==inf)
 		{
+		
 			break;
 		}
-		else if(id.x==texelFetch(ContentAbout,ivec2(0,0),0).w)//если сфера
+		else if(id.x==/*texelFetch(ContentAbout,ivec2(0,0),0).w*/1)//если сфера
 		{
 			ivec4 in1 = texelFetch(ContentAbout,ivec2(0,0),0);
 			ivec4 in2 = texelFetch(ContentAbout,ivec2(1,0),0);
@@ -300,21 +364,37 @@ bool RTX(in vec3 me,in vec3 lookTo,  out vec4 color)
 			materialID.x= in2.z;
 			norm = sphN(sphs1.yzw,me,lookTo,leng.x);
 		}
-		else if(id.x==texelFetch(ContentAbout,ivec2(2,0),0).w)//если коробка
+		else if(id.x==/*texelFetch(ContentAbout,ivec2(2,0),0).w*/2)//если коробка
 		{
 			ivec4 in1 = texelFetch(ContentAbout,ivec2(2,0),0);
 			ivec4 in2 = texelFetch(ContentAbout,ivec2(3,0),0);
 			materialID.x= in2.z;
+			vec4 sphs1,sphs2,sphs3;
+			sphs1 = texelFetch(Content,ivec2(id.y*in1.y/4+in2.x/4,0),0);
+			sphs2 = texelFetch(Content,ivec2(id.y*in1.y/4+in2.x/4+1,0),0);
+			sphs3 = texelFetch(Content,ivec2(id.y*in1.y/4+in2.x/4+2,0),0);
+			
+			vec3 me2 = me-sphs3.yzw;
+			me2=rotate(me2,sphs1.xy,sphs1.zw,sphs2.xy);
+			vec3 lookTo2=rotate(lookTo,sphs1.xy,sphs1.zw,sphs2.xy);
+			isBoxIntersectN(me2,lookTo2,vec3(sphs2.zw,sphs3.x),norm);
+			norm = unrotate(norm,sphs1.xy,sphs1.zw,sphs2.xy);
 
-
-			//break;
 		}
-		else if(id.x==texelFetch(ContentAbout,ivec2(4,0),0).w)//если треугольник
+		else if(id.x==/*texelFetch(ContentAbout,ivec2(4,0),0).w*/3)//если треугольник
 		{
 			ivec4 in1 = texelFetch(ContentAbout,ivec2(4,0),0);
 			ivec4 in2 = texelFetch(ContentAbout,ivec2(5,0),0);
 			materialID.x= in2.z;
-			break;
+			vec4 sphs1,sphs2,sphs3;
+			float len22 = inf;
+			sphs1 = texelFetch(Content,ivec2(i,0),0);
+			sphs2 = texelFetch(Content,ivec2(i+1,0),0);
+			sphs3 = texelFetch(Content,ivec2(i+2,0),0);
+			isTriIntersect(me,lookTo,sphs1.xyz,vec3(sphs1.w,sphs2.xy),vec3(sphs2.zw,sphs3.x),len22/*рандомное значение*/,norm);
+			norm = normalize(norm);
+			if(dot(norm,lookTo)>0)norm = norm * (-1);
+			//norm = norm*(-sign(dot(norm,lookTo)));
 		}
 
 		//поиск значения искомого материала
@@ -345,7 +425,10 @@ bool RTX(in vec3 me,in vec3 lookTo,  out vec4 color)
 		{
 			ivec4 in_T = texelFetch(ContentAbout,ivec2(materialID.x,0),0);
 			ivec4 in_T2 = texelFetch(ContentAbout,ivec2(materialID.x+1,0),0);
-			color_t = vec4(   normalize(texelFetch(Content,ivec2(   (in_T2.x+materialID.y*in_T.y)/4   ,0),0).xyz),1   );
+			vec4 data1 = texelFetch(Content,ivec2(   (in_T2.x+materialID.y*in_T.y)/4   ,0),0);
+			vec4 data2 = texelFetch(Content,ivec2(   (in_T2.x+materialID.y*in_T.y)/4+1   ,0),0);
+			color_t = vec4(   normalize(data1.xyz),1   );
+			norm = RVwDPX(norm,data2.x,data2.y);
 		}
 		else
 			color_t = normalize(vec4(0,0,1,1));
@@ -360,9 +443,10 @@ bool RTX(in vec3 me,in vec3 lookTo,  out vec4 color)
 
 			//освещение
 			//мы смотрим на сколько вектор нормали конечный отличается от угла падения света и умножаем свет на это число
-			float isLig = dot(lookTo,vec3(0,0,1));
+			float isLig = -dot(lookTo,vec3(0,0,1));
 			if(isLig<0) isLig = 0;
-			color = color*isLig;
+			color = color*(isLig+0.1);
+			//color = vec4(norm,1);
 		}
 		lengsum+=leng.x;
 
