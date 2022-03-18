@@ -16,10 +16,13 @@ layout (location = 9)uniform isampler2D ContentAbout;
 layout (location = 10) uniform sampler2DArray texture_array;//88ff штук максимум
 layout (location = 11)uniform isampler2D AboutMaterial;
 const float inf = abs(1.0/0.0);
-const float epsilon = 10e-6;
-const float epsilon2 = 10e-3;
+const float epsilon0 = 1e-10;
+const float epsilon = 1e-6;
+const float epsilon2 = 1e-3;
+const float pi = 3.1415926535;///**/8979323846/**/2643383279/**/5028841971/**/6939937510/**/5820974944;
 out vec4 out_gl_FragColor;
 float seed = 13746.785*gl_FragCoord.y/(gl_FragCoord.x+time)/**length(me1)+time*/;
+
 
 float random()
 {
@@ -91,15 +94,15 @@ bool isTriIntersect( in vec3 rayOrigin, in vec3 rayDirection, in vec3 v0, in vec
 	//normal0 = normal0*(-sign(dot(normal0,rayDirection)));
     vec3  q = cross( rayOrigin0, rayDirection );
     float d = 1.0/dot( rayDirection,normal0 );
+	//if(dot(normal0,rayOrigin0)*d/*/dot(normal0,rayDirection)*/>0)return false;//если луч уходит от треугольника
 	//if(abs(d)>10e6)return false;
-	if(dot(normal0,rayOrigin0)/dot(normal0,rayDirection)>0.001)return false;//если луч уходит от треугольника
     float u = d*dot( -q, v02 );
     float v = d*dot(  q, v01 );
-    float t = d*dot( -normal0, rayOrigin0 );//можно заменить т на анс
-    if( u<0.0 || v<0.0 || (u+v)>1.0 ) return false;
+    ans = d*dot( -normal0, rayOrigin0 );//можно заменить т на анс
+    if( u<0.0 || v<0.0 || (u+v)>1.0 ||ans<0) return false;
 	//t=dot(v0-rayOrigin,rayDirection);
 	//ans =  vec3( t, u, v );
-	ans = t;
+	//ans = t;
 	//if(ans<0) return false;
     return true;
 }
@@ -195,24 +198,23 @@ vec4 sphs1,sphs2,sphs3;
 	float lenNow = inf;
 	vec3 normal;
 	len = lenNow;
-	int iNow = in1.x;
+	int id_T=0;
 	if(in1.x/4==0) return false;
-	for (int i = in2.x/4;i<in2.y/4;i=i+in1.y/4)
+	for (int i = in2.x/4;i<in2.y/4;i=i+in1.y/4,
+										id_T++	)
 	{
 		sphs1 = texelFetch(Content,ivec2(i,0),0);
 		sphs2 = texelFetch(Content,ivec2(i+1,0),0);
 		sphs3 = texelFetch(Content,ivec2(i+2,0),0);
-		if(!isTriIntersect(me,lookTo,sphs1.xyz,vec3(sphs1.w,sphs2.xy),vec3(sphs2.zw,sphs3.x),lenNow,normal))
+		if(isTriIntersect(me,lookTo,sphs1.xyz,vec3(sphs1.w,sphs2.xy),vec3(sphs2.zw,sphs3.x),lenNow,normal))
 		{
-			continue;
-		}
-		else if(lenNow < len)
-		{
-			len = lenNow;
-			iNow = i;
+			if(lenNow < len)
+			{
+				len = lenNow;
+				id = id_T;
+			}
 		}
 	}
-	id = (iNow-in2.x/4)*4/in1.y;
 	if (len==inf) return false;
 //	color = normalize(vec4(texelFetch(Content,ivec2(iNow+1,0),0).xyz,1.0));
 //	normal = sphN(texelFetch(Content,ivec2(iNow,0),0).yzw,me,lookTo,len);
@@ -276,6 +278,102 @@ bool getSphClr(in vec3 me,in vec3 lookTo,in ivec4 in1, in ivec4 in2, out float l
 //	normal = sphN(texelFetch(Content,ivec2(iNow,0),0).yzw,me,lookTo,len);
 	return true;
 }
+float arctan(float a,float b)
+{
+	float ans = atan(abs(a/b));
+	if(a>=0&&b<=0)ans =pi- ans;
+	else if(a<=0&&b<=0)ans = ans+pi;
+	else if(a<=0&&b>=0)ans = 2*pi-ans;
+	return ans;
+
+}
+//float arccos(float a,float c)
+//{
+//	float ans = acos(abs(a/c))
+//}
+vec2 SphToTex(in vec3 sphO,in vec3 P,in vec3 x,in vec3 y)
+{
+	P = normalize(P-sphO);
+	float x1,y1,z1;
+	x1 = dot(normalize(x),P);
+	y1 = dot(normalize(y),P);
+	z1 = dot(normalize(cross(x,y)),P);//тангенс переодичен с периодом в pi
+	//return (vec2(atan(z1/x1),atan(z1/y1))/pi/*теперь от -1 до 1*/+1)/4+vec2((sign(x1)+1)/4,(sign(y1)+1)/4);
+	return vec2(arctan(z1,x1),arctan(z1,y1))/(2*pi);
+}
+vec3 textoPSph(in vec3 sphO,in float radius,in vec3 x,in vec3 y,in vec2 TexC)
+{
+//	vec2 signs = sign(TexC-vec2(0.5));
+//	TexC = TexC-vec2((signs.x+1)/4,(signs.y+1)/4);
+//	TexC = (TexC*4-1)*pi;
+	float x1,y1,z1;
+//	x1 = abs(cos(TexC.x))*signs.x;
+//	y1 = abs(cos(TexC.y))*signs.y;
+//	z1 = abs(sin(TexC.x))*sign(tan(TexC.x)*signs.x);
+//	return normalize((x1*x+y1*y+z1*normalize(cross(x,y))))*radius+sphO;
+TexC=TexC*2*pi;
+x1 = cos(TexC.x);
+y1= cos(TexC.y);
+z1= sin(TexC.x);
+return sphO+normalize(x*x1+y*y1+cross(x,y)*z1)*radius;
+
+
+}
+vec2 triToTex1(vec3 v0,vec3 v1,vec3 v2,vec3 p,vec3 norm)
+{
+	//https://habr.com/ru/post/249467/
+	v1 = v1-v0;
+	v2 = v2-v0;
+	p=p-v0;
+	vec3 x = normalize(v1);
+	vec3 y = normalize(cross(x,cross(x,v2)));
+	vec2 v11 = vec2(dot(x,v1),0);
+	vec2 v22 = vec2(dot(x,v2),dot(y,v2));
+	vec2 p2 = vec2(dot(x,p),dot(y,p));
+	vec3 barycentric = cross(vec3(v11.x,v22.x,p2.x),vec3(v11.y,v22.y,p2.y));
+	barycentric = barycentric/barycentric.z;
+	if(sign(dot(norm,cross(x,y)))<0)
+	barycentric=barycentric*(-1.)+1;
+	return barycentric.xy;
+
+}
+vec3 texToPTri1(vec3 v0,vec3 v1,vec3 v2,vec2 p,out vec3 norm)
+{	
+	norm = normalize(cross(v1-v0,v2-v0))*(-sign(p.x+p.y-1));
+	if(p.x+p.y>1)p=(p-1)*(-1);
+	return v0+(v1-v0)*p.x+(v2-v0)*p.y;
+
+}
+vec2 triToTex2(vec3 v0,vec3 v1,vec3 v2,vec3 p)
+{
+	//https://habr.com/ru/post/249467/
+	v1 = v1-v0;
+	v2 = v2-v0;
+	p=p-v0;
+	vec3 x = normalize(v1);
+	vec3 y = normalize(cross(x,cross(x,v2)));
+	vec2 v11 = vec2(dot(x,v1),0);
+	vec2 v22 = vec2(dot(x,v2),dot(y,v2));
+	vec2 p2 = vec2(dot(x,p),dot(y,p));
+	vec3 barycentric = cross(vec3(v11.x,v22.x,p2.x),vec3(v11.y,v22.y,p2.y));
+	barycentric = barycentric/barycentric.z;
+	barycentric = barycentric*(barycentric.x+barycentric.y)/max(barycentric.x,barycentric.y);
+	return barycentric.xy;
+
+}
+vec3 texToPTri2(vec3 v0,vec3 v1,vec3 v2,vec2 p)
+{
+	p = p*max(p.x,p.y)/(p.x+p.y);
+	return  v0+(v1-v0)*p.x+(v2-v0)*p.y;
+}
+vec2 jff(vec2 dd)
+{
+	vec3 v0 = vec3(23,32,22);
+	vec3 v1 = vec3(67,54,34);
+	vec3 v2 = vec3(32,567,8);
+	vec3 p = texToPTri2(v0,v1,v2,dd);
+	return triToTex2(v0,v1,v2,p);
+}
 void orthogonalVs(in vec3 v1, out vec3 v2, out vec3 v3)
 {
 	//vec3 randomVec =  normalize(max(vec3(0,0,1)*length(cross(vec3(0,0,1),v1)),vec3(0,1,0)*length(cross(vec3(0,1,0),v1))));//рандомный вектор, неколинеарный с данным
@@ -307,10 +405,12 @@ vec3 RVwDPX(in vec3 v, in float x,in float maxTanDiff) //random vector with diff
 	return v;
 	return normalize(v + ROwVaL(v,maxL));
 }
+
 bool RTX(in vec3 me,in vec3 lookTo,  out vec4 color)
 {
 	float lengsum = 0;
-	for(int i = 0;i<4;++i)
+		int qwerte = 0;
+	for(int i = 0;i<2;++i)
 	{
 		vec2 leng=vec2(inf,inf);
 		ivec2 id,id_T;//в переменной id должно находится первым символом номер искомой функции, вторым-последовательный номер в наборе из этих функций где первая-0
@@ -342,7 +442,7 @@ bool RTX(in vec3 me,in vec3 lookTo,  out vec4 color)
 		{
 			if(leng.y<leng.x)
 			{
-			leng.x=leng.y;
+			leng.x=leng.y*(1-100*epsilon);//расстояние определяется чуть больше чем есть на самом деле так что вот так вот
 			id= id_T;
 			}
 //			color = normalize(vec4(sin(leng.y),2,2,1));
@@ -388,14 +488,19 @@ bool RTX(in vec3 me,in vec3 lookTo,  out vec4 color)
 			ivec4 in2 = texelFetch(ContentAbout,ivec2(5,0),0);
 			materialID.x= in2.z;
 			vec4 sphs1,sphs2,sphs3;
-			float len22 = inf;
-			sphs1 = texelFetch(Content,ivec2(i,0),0);
-			sphs2 = texelFetch(Content,ivec2(i+1,0),0);
-			sphs3 = texelFetch(Content,ivec2(i+2,0),0);
-			isTriIntersect(me,lookTo,sphs1.xyz,vec3(sphs1.w,sphs2.xy),vec3(sphs2.zw,sphs3.x),len22/*рандомное значение*/,norm);
+			sphs1 = texelFetch(Content,ivec2(id.y*in1.y/4+in2.x/4,0),0);
+			sphs2 = texelFetch(Content,ivec2(id.y*in1.y/4+in2.x/4+1,0),0);
+			sphs3 = texelFetch(Content,ivec2(id.y*in1.y/4+in2.x/4+2,0),0);
+			//float len22 = inf;
+			//isTriIntersect(me,lookTo,sphs1.xyz,vec3(sphs1.w,sphs2.xy),vec3(sphs2.zw,sphs3.x),len22/*рандомное значение*/,norm);
+			norm = cross(normalize(vec3(sphs1.w,sphs2.xy)-sphs1.xyz),normalize(vec3(sphs2.zw,sphs3.x)-sphs1.xyz));
+			  
+			//norm = cross(normalize(vec3(1000,1000,1000)-vec3(1000,1000,-1000)),normalize(vec3(1000,-1000,1000 )-vec3(1000,1000,-1000)));
 			norm = normalize(norm);
+			//norm = vec3(1,0,0);
 			if(dot(norm,lookTo)>0)norm = norm * (-1);
 			//norm = norm*(-sign(dot(norm,lookTo)));
+			qwerte += 1;
 		}
 
 		//поиск значения искомого материала
@@ -440,17 +545,52 @@ bool RTX(in vec3 me,in vec3 lookTo,  out vec4 color)
 		{
 			//отражение
 			me = me + lookTo*leng.x;
+			vec3 dontlookto = lookTo;
 			lookTo = reflect(lookTo,norm);
+			//lookTo = normalize(lookTo);
+//			if(qwerte == 3)
+//			{
+//			if(i>2)
+//			{
+//			color = vec4(0.5,0.5,0.5,1);
+//			return true;
+//			}
+//			}
 
 			//освещение
 			//мы смотрим на сколько вектор нормали конечный отличается от угла падения света и умножаем свет на это число
-			float isLig = -dot(lookTo,vec3(0,0,1));
-			if(isLig<0) isLig = 0;
-			color = color*(isLig+0.1);
+			float isLig = -dot(lookTo,normalize(vec3(0,cos(time/1e10),sin(time/1e10))));
+			isLig = max(isLig,0.3);
+			color = color*(isLig);
+			
 			//color = vec4(norm,1);
 		}
 		lengsum+=leng.x;
-
+//		color = vec4(norm,1);
+//		float qwerty = time/8e9;
+//		vec2 qw = vec2(sin(qwerty),cos(qwerty));
+		//if(length(norm)<epsilon)color = vec4(normalize(vec3(qw.x,qw.y,1)),1);
+//		if(length(norm-vec3(qw.x,0,qw.y))<1)color = vec4(1,2,3,1);
+//		else color = vec4(3,2,1,1);
+//		if(length(norm-vec3(qw,0))<0.1)color = vec4(1,qw,1);
+//		if(length(norm-vec3(-1,0,0))<0.1)color = vec4(1,0,0,1);
+//		else color = vec4(0,1,0,1);
+//		if(length(norm.xz-vec3(-1,0,0).xz)<0.1)color = vec4(0,1,0,1);
+//		else color = vec4(0,1,0,1);
+//		if(length(norm-vec3(-1,0,0))<0.1)color = vec4(0,0,0,1);
+//		break;
+//		else color = vec4(0,1,0,1);
+//if(time>8e15)color = vec4(0,0,1,1);
+//else color = vec4(1,0,0,1);
+//color = vec4(normalize(color.xyz),1);
+//vec3 a,b;
+//a = random()*vec3(0,0,1)+random()*vec3(1,0,0);
+//b = random()*vec3(0,0,1)+random()*vec3(1,0,0);
+//vec3 dfdt = normalize(cross(a,b));
+//dfdt = dfdt*sign(dfdt.y);
+//if(length(dfdt-vec3(0,1,0))>0)color = vec4(1,1,1,1);
+//		break;
+//
 	}
 	if(lengsum==0)
 	{
@@ -484,8 +624,29 @@ void main()
 //		//clr2 = vec4(0,1,0,1);
 //		//if(out_gl_FragColor==vec4(0,0,0,0))
 		
-		out_gl_FragColor = vec4(normalize(vec3(1,3,5)),1.0);
+		out_gl_FragColor = vec4(normalize(vec3(1,1,1)),1.0);
+		
 	}
+	
+//vec3 a,b;
+//a = random()*vec3(0,0,1)+random()*vec3(1,0,0);
+//float seedd_t = seed;
+//b = random()*vec3(0,0,1)+random()*vec3(1,0,0);
+//if(seed==seedd_t)out_gl_FragColor = vec4(1,1,1,1);
+//vec3 dfdt = normalize(cross(vec3(400,7,60)-vec3(6,7.001,8),vec3(3000,7,5000)-vec3(6,7.001,8)));
+//vec3 dfdt = normalize(cross(a,b));
+//dfdt = dfdt*sign(dfdt.y);
+//if(length(dfdt-vec3(0,1,0))<0.01)out_gl_FragColor = vec4(1,1,1,1);
+//	for(int i = 0; i < 100000;++i)
+//	{
+//	if(round(i-epsilon)!=i)
+//	{
+//	out_gl_FragColor = vec4(0,0,1,1);
+//	break;
+//	}}
+	//if(round(0.4)==0)out_gl_FragColor=vec4(0,0,1,1);
+	//out_gl_FragColor = vec4(jff(out_gl_FragColor.xy),out_gl_FragColor.zw);
+	//if((jff(normalize(out_gl_FragColor.xy+epsilon))-normalize(out_gl_FragColor.xy+epsilon)).x>0.0000000001)out_gl_FragColor = vec4(0,0,0,1);
 //if(gl_FragCoord.x<u_resolution.x/2)
 //out_gl_FragColor = vec4(1,1,0,1);
 //else

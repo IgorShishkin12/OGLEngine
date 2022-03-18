@@ -20,7 +20,7 @@
 //#include "stb_image.h"
 #include<array>
 #include <iostream>
-
+#include <C:\Users\shishkin_i\Downloads\Pump_Impellar (1).cpp>
 void framebuffer_size_callback(GLFWwindow* window, int width, int height);
 void processInput(GLFWwindow* window);
 bool isMove(GLFWwindow* window, float* arr);
@@ -112,32 +112,47 @@ int main()
 	constexpr int sizex = 8, sizey = 1;
 	vector<Sphere> vec;
 	{
-		vec.resize(4);//float radius=1, float x=0, float y=0, float z=0, float r=0, float g=0, float b=0, float a=1
+		//float radius=1, float x=0, float y=0, float z=0, float r=0, float g=0, float b=0, float a=1
 
-		vec[0] = Sphere{ 100,14,100,39,0,3,8 };
-		vec[0].setMat(2, 100);
-		vec[1] = Sphere{ 50,14,-100,-39,9,3,2 };
-		vec[1].setMat(1, 100);
-		vec[2] = Sphere{ 10,14,-100,200,0,3,0 };
-		vec[2].setMat(0, 100);
-		vec[3] = Sphere{ 45,-14,100,309,3,3,3 };/**/
-		vec[3].setMat(0, 100);
+		vec.push_back(Sphere{ 100,14,100,39,0,3,8 });
+		vec[vec.size() - 1].setMat(2, 100);
+		vec.push_back(Sphere{ 50,14,-100,-39,9,3,2 });
+		vec[vec.size() - 1].setMat(1, 100);
+		vec.push_back(Sphere{ 10,14,-100,200,0,3,0 });
+		vec[vec.size() - 1].setMat(1, 100);
+		vec.push_back(Sphere{ 45,-14,100,309,3,3,3 });/**/
+		vec[vec.size() - 1].setMat(1, 100);
+		vec.push_back(Sphere{ 45,1000,1000,1000,3,3,3 });/**/
+		vec[vec.size() - 1].setMat(1, 100);
+		vec.push_back(Sphere{ 45,1000,1000,-1000,3,3,3 });/**/
+		vec[vec.size() - 1].setMat(1, 100);
+		vec.push_back(Sphere{ 45,1000,-1000,1000,3,3,3 });/**/
+		vec[vec.size() - 1].setMat(1, 100);
 
 	}
-	vector<Box> vec2(2);//(float sizex=0, float sizey=0, float sizez=0, float x=0, float y=0, float z=0, float a1=0, float b1=0, float c1=0
+	vector<Box> vec2;//(float sizex=0, float sizey=0, float sizez=0, float x=0, float y=0, float z=0, float a1=0, float b1=0, float c1=0
 	{
-		vec2[0] = Box{ 80,8,900,100, 18,27,1 / 1,1 / 1, 1 / 1 };
-		vec2[0].setMat(1, 100);
-		vec2[1] = Box{ 7,80,90,10,7,50,1 / 9,1 / 1,1 / 8 };
-		vec2[1].setMat(0, 100);
+		vec2.push_back(Box{ 80,8,900,100, 18,27,1 / 1,1 / 1, 1 / 1 });
+		vec2[vec2.size() - 1].setMat(1, 100);
+		vec2.push_back(Box{ 7,80,90,10,7,50,1 / 9,1 / 1,1 / 8 });
+		vec2[vec2.size() - 1].setMat(0, 100);
+		vec2.push_back(Box{ 1,2000,2000,0,0,0,0,0,0});
+		vec2[vec2.size() - 1].setMat(3, 100);
 	}
 	vector<Triangle> vec3;
 	{
 		vec3.reserve(2);
-		vec3.push_back(Triangle{ 1,1,34,  45,65,23,  860,23,8 });
-		vec3.push_back(Triangle{ 19,23,22,  45,65,23,  86,230,8 });
-		vec3[0].setMat(0, 100);
-		vec3[0].setMat(1, 100);
+		vec3.push_back(Triangle{ -1000,1000,-1000, -1000,1000,1000,  -1000,-1000,1000 });
+		vec3.push_back(Triangle{ 1000,1000,-1000, 1000,1000,1000,  1000,-1000,1000 });
+		vec3[0].setMat(2, 100);
+		vec3[1].setMat(1, 100);
+		for (long i = 0; i < 3420; ++i)
+		{
+			long j = i * 9;
+			float* q = &vertexTriangleArray[j];
+			vec3.push_back(Triangle(q[0], q[1], q[2], q[3], q[4], q[5], q[6], q[7], q[8]));
+			vec3[i].setMat(1, 100);
+		}
 	}
 	vector<Material1> mats;
 	{
@@ -145,6 +160,7 @@ int main()
 		mats.push_back(Material1{ 0,0,200,1,0.1 });
 		mats.push_back(Material1{ 0,1,0 });
 		mats.push_back(Material1{ 1,0,0 });
+		mats.push_back(Material1{ 1,2,3 });
 	}
 	Textures tx{ ourShader };
 	vector <float> hans;
@@ -173,7 +189,7 @@ int main()
 			hans2.push_back(j.materialID);
 			hans3.push_back(j.materialClass);
 		}
-		tx.addData(12, 2, 2, &hans[0]);
+		tx.addData(12, vec2.size(), 2, &hans[0]);
 		tx.addMaterials(matBeg, &hans2[0], &hans3[0]);
 	}
 	{
@@ -217,8 +233,10 @@ int main()
 		mice2 = mouse();
 		sendWindowP(window, ourShader);
 		glUniform4f(ID_mice, mice2[0], mice2[1], mice2[2], mice2[3]);
-		long double time_now = __rdtsc();
-		glUniform1f(time_GLSL, cos(time_now/10000));
+		float time_now = __rdtsc();
+		//time_now = time_now / 1e14;
+		//cout << time_now << endl;
+		glUniform1f(time_GLSL, time_now);
 		tx.send();
 		if (isMove(window, moveCrd))
 		{
