@@ -51,11 +51,11 @@ bool isSphereIntersect( in vec3 rayOrigin, in vec3 rayDirection, in vec3 center,
 	float b = dot( originCenter, rayDirection );
 	float tangentSQ = dot( originCenter, originCenter ) - radius*radius;
 	float h = b*b - tangentSQ;
-	if( h<0.0 ||b>0.0) return false; // если нет пересечений или пересечене есть но оно с другой стороны от ориджина
+	//if( h<0.0 ||b>0.0) return false; // если нет пересечений или пересечене есть но оно с другой стороны от ориджина
 	h = sqrt( h );
 	distance1 = -b-h;
 	distance2 = -b + h;
-	if(distance1==0.0||distance2==0.0) return false;
+	if(max(distance1,distance2)<=0) return false;
 	return true;
 }
  
@@ -419,7 +419,7 @@ bool RTX(in vec3 me,in vec3 lookTo,  out vec4 color)
 		{
 			if(leng.y<leng.x)
 			{
-			leng.x=leng.y;
+			leng.x=leng.y*(1-100*epsilon);
 			id= id_T;
 			}
 
@@ -430,7 +430,7 @@ bool RTX(in vec3 me,in vec3 lookTo,  out vec4 color)
 		{
 			if(leng.y<leng.x)
 			{
-			leng.x=leng.y;
+			leng.x=leng.y*(1-100*epsilon);
 			id= id_T;
 			}
 

@@ -146,13 +146,20 @@ int main()
 		vec3.push_back(Triangle{ 1000,1000,-1000, 1000,1000,1000,  1000,-1000,1000 });
 		vec3[0].setMat(2, 100);
 		vec3[1].setMat(1, 100);
-		for (long i = 0; i < 3420; ++i)
-		{
-			long j = i * 9;
-			float* q = &vertexTriangleArray[j];
-			vec3.push_back(Triangle(q[0], q[1], q[2], q[3], q[4], q[5], q[6], q[7], q[8]));
-			vec3[i].setMat(1, 100);
-		}
+		//for (long i = 0; i < 3420; ++i)
+		//{
+		//	long j = i * 9;
+		//	float* q = &vertexTriangleArray[j];
+		//	vec3.push_back(Triangle(q[0], q[1], q[2], q[3], q[4], q[5], q[6], q[7], q[8]));
+		//	vec3[i].setMat(1, 100);
+		//}
+		//for (long i = 0; i < 3420; ++i)
+		//{
+		//	long j = i * 9;
+		//	float* q = &vertexTriangleArray[j];
+		//	vec3.push_back(Triangle(q[0], q[1], q[2], q[3], q[4], q[5], q[6], q[7], q[8]));
+		//	vec3[i].setMat(1, 100);
+		//}
 	}
 	vector<Material1> mats;
 	{
