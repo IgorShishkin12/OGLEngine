@@ -4,19 +4,45 @@
 class Sphere
 {
 public:
+	static const int size = 12;
 	float radius;
 	float x, y, z;
-	float xrot, yrot, zrot,wrot;
+	struct Basis
+	{
+		struct Vec
+		{
+			float x, y, z;
+			void operator=(Vec in)
+			{
+				x = in.x;
+				y = in.y;
+				z = in.z;
+			}
+		};
+		Vec v1, v2, v3;
+		void operator=(Basis in)
+		{
+			v1 = in.v1;
+			v2 = in.v2;
+			v3 = in.v3;
+		}
+	};
+	Basis b;
 	long materialID;
 	int materialClass;
-	const int size = 8;
-	Sphere(float radius1 = 1, float x1 = 0, float y1 = 0, float z1 = 0, float xrot1 = 0, float yrot1 = 0, float zrot1 = 0, float wrot1 = 0) :
-		radius{ radius1 }, x{ x1 }, y{ y1 }, z{ z1 }, xrot{ xrot1 }, yrot{ yrot1 }, zrot{ zrot1 }, wrot{ wrot1 }
+	Sphere(float radius1 = 1, float x1 = 0, float y1 = 0, float z1 = 0) :
+		radius{ radius1 }, x{ x1 }, y{ y1 }, z{ z1 }
 	{
 	}
-	std::array<float, 8> getArr()
+	Sphere* setBasis(float v1x=1, float v1y=0, float v1z=0, float v2x=0, float v2y=1, float v2z=0)
 	{
-		return std::array<float, 8>{radius, x, y, z, xrot, yrot, zrot, wrot};
+		b.v1 = Basis::Vec{ v1x,v1y,v1z };
+		b.v2 = Basis::Vec{ v2x,v2y,v2z };
+		return this;
+	}
+	std::array<float, size> getArr()
+	{
+		return std::array<float, size>{radius, x, y, z, b.v1.x,b.v1.y,b.v1.z,b.v2.x,b.v2.y,b.v2.z};
 	}
 	void setMat(long long ID, int cl)
 	{
@@ -33,8 +59,6 @@ public:
 		this->x = in.x;
 		this->y = in.y;
 		this->z = in.z;
-		this->xrot = in.xrot;
-		this->yrot = in.yrot;
-		this->zrot = in.zrot;
+		this->b = in.b;
 	}
 };

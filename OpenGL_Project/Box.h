@@ -1,7 +1,6 @@
 #pragma once
 #include <array>
 #include"Matrix.h"
-#define SIZEbxh 12
 class Box
 {
 	typedef float angle;
@@ -11,10 +10,32 @@ class Box
 	std::array<float, 3> sizes;//x,y,z ширина,высота,глубина
 	std::array<float, 3> position;//x,y,z
 	bool isDefPosInTex;
-	const int size = SIZEbxh;
+
+	struct Basis
+	{
+		struct Vec
+		{
+			float x, y, z;
+			void operator=(Vec in)
+			{
+				x = in.x;
+				y = in.y;
+				z = in.z;
+			}
+		};
+		Vec v1, v2, v3;
+		void operator=(Basis in)
+		{
+			v1 = in.v1;
+			v2 = in.v2;
+			v3 = in.v3;
+		}
+	};
+	Basis base;
 
 	std::pair<unsigned long, unsigned long> posInTex;
 public:
+	static const int size = 12;
 	long materialID;
 	int materialClass;
 	Box(float sizex=0, float sizey=0, float sizez=0, float x=0, float y=0, float z=0, float a1=0, float b1=0, float c1=0) :
@@ -29,6 +50,16 @@ public:
 			sicoss={ 0,1,0,1,0,1 };
 		}
 	}
+	std::array<float, 9> getRmxForBox()
+	{
+		MatrixF mx1(3), mx2(3), mx3(3), mx4(3);
+		mx1 = changeRMx3('x', (float)a);
+		mx2 = changeRMx3('y', (float)b);
+		mx3 = changeRMx3('z', (float)c);
+		mx4 = mx1 * mx2;
+		mx4 = mx4 * mx3;
+		return std::array<float, 9>{mx4.get(1, 1), mx4.get(1, 2), mx4.get(1, 3), mx4.get(2, 1), mx4.get(2, 2), mx4.get(2, 3), mx4.get(3, 1), mx4.get(3, 2), mx4.get(3, 3) };
+	}
 	void setMat(long long ID, int cl)
 	{
 		materialID = ID;
@@ -39,7 +70,7 @@ public:
 		return std::array<long, 2>{materialClass, (long)materialID};
 	}
 
-	std::array<float, SIZEbxh> get()
+	std::array<float, size> get()
 	{
 		return{ sicoss[0], sicoss[1], sicoss[2], sicoss[3], sicoss[4], sicoss[5],sizes[0],sizes[1],sizes[2],position[0],position[1],position[2] };
 	}
@@ -55,14 +86,3 @@ public:
 		this->posInTex = in.posInTex;
 	}
 };
-
-std::array<float, 9> getRmxForBox(float a, float b, float c)
-{
-	MatrixF mx1(3), mx2(3), mx3(3), mx4(3);
-	mx1 = changeRMx3('x', a);
-	mx2 = changeRMx3('y', b);
-	mx3 = changeRMx3('x', c);
-	mx4 = mx1 * mx2;
-	mx4 = mx4 * mx3;
-	return std::array<float, 9>{mx4.get(1, 1), mx4.get(1, 2), mx4.get(1, 3), mx4.get(2, 1), mx4.get(2, 2), mx4.get(2, 3), mx4.get(3, 1), mx4.get(3, 2), mx4.get(3, 3) };
-}
