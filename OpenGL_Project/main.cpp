@@ -163,8 +163,8 @@ int main()
 	vector<Material1> mats;
 	{
 		//mats.reserve(2);
-		mats.push_back(Material1{ 0,0,200,1,0.1 });
-		mats.push_back(Material1{ 0,1,0 });
+		mats.push_back(Material1{ 0,0,200,1,0.0 });
+		mats.push_back(Material1{ 0,1,0,99.0f,1 });
 		mats.push_back(Material1{ 1,0,0 });
 		mats.push_back(Material1{ 1,2,3 });
 	}
@@ -230,7 +230,6 @@ int main()
 	{
 		// Обработка ввода
 		processInput(window);
-		//__rdtsc();
 		// Рендеринг
 		glClearColor(0.0f, 0.0f, 0.0f, 1.0f);
 		glClear(GL_COLOR_BUFFER_BIT);

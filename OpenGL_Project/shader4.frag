@@ -21,10 +21,10 @@ const float epsilon = 1e-6;
 const float epsilon2 = 1e-3;
 const float pi = 3.1415926535;
 out vec4 out_gl_FragColor;
-float seed = 13746.785*gl_FragCoord.y/(gl_FragCoord.x+time)/**length(me1)+time*/;
+float seed = 13746.785*gl_FragCoord.y/(gl_FragCoord.x+time/1e8)+sin(length(me1))*10+sin(length(mouse.xz))*10/*+time*/;
 
 
-float random(float use)
+float random(in float use)
 {
 	//seed =fract(tan(dot(vec2(cos(seed*34),tan(967/seed)), vec2(seed+45,atan(133.2345/seed)))*pow(3.42342,seed)));
 	 //seed = fract(cos(1./fract(sin(1./fract(tan(seed))))));
@@ -360,17 +360,17 @@ vec3 ROwVaL(in vec3 v, in float l)//random orthogonal with vector and length
 vec3 RVwDPX(in vec3 v, in float x,in float maxTanDiff/*maxTanDiff for max parameter of (delta vector)/lenght(v)*/) //random vector with difference probability x
 {
 	//функция перевода рандомного числа в угол такая так как https://umath.ru/calc/graph/?&func=acos(x%5E(1/20));
-	float maxL = length(v)*	min(tan(acos(		(pow(fract(random(3)),1.0/x))	)),maxTanDiff);
-	if(maxL<epsilon)
+	float maxL = abs(length(v)*	tan(acos(		(pow(fract(random(3)),1.0/x))	))*maxTanDiff);
+	vec3 ans = normalize(v + ROwVaL(v,maxL));
+	if(maxL<epsilon || sign(dot(ans,v))<1)
 	return v;
-	return normalize(v + ROwVaL(v,maxL));
+	return ans;
 }
-
 bool RTX(in vec3 me,in vec3 lookTo,  out vec4 color)
 {
 	float lengsum = 0;
 		//int qwerte = 0;
-	for(int i = 0;i<4;++i)
+	for(int i = 0;i<1;++i)
 	{
 		ivec2 id,id_T;//в переменной id должно находится первым символом номер искомой функции, вторым-последовательный номер в наборе из этих функций где первая-0
 		vec2 leng=vec2(inf,inf);
@@ -416,35 +416,33 @@ bool RTX(in vec3 me,in vec3 lookTo,  out vec4 color)
 		}
 		//break;
 		leng.x *=(1-100*epsilon);//расстояние определяется чуть больше чем есть на самом деле так что вот так вот
+
+		ivec4 in1 = texelFetch(ContentAbout,ivec2((id.x-1)*2,0),0);
+		ivec4 in2 = texelFetch(ContentAbout,ivec2((id.x-1)*2+1,0),0);
+		vec4 sphs1,sphs2,sphs3;
+		sphs1 = texelFetch(Content,ivec2(id.y*in1.y/4+in2.x/4,0),0);
+		sphs2 = texelFetch(Content,ivec2(id.y*in1.y/4+in2.x/4+1,0),0);
+		sphs3 = texelFetch(Content,ivec2(id.y*in1.y/4+in2.x/4+2,0),0);
+		materialID.x= in2.z;
+		 if(id.x==/*texelFetch(ContentAbout,ivec2(0,0),0).w*/1)//если сфера
 		{
-			ivec4 in1 = texelFetch(ContentAbout,ivec2((id.x-1)*2,0),0);
-			ivec4 in2 = texelFetch(ContentAbout,ivec2((id.x-1)*2+1,0),0);
-			vec4 sphs1,sphs2,sphs3;
-			sphs1 = texelFetch(Content,ivec2(id.y*in1.y/4+in2.x/4,0),0);
-			sphs2 = texelFetch(Content,ivec2(id.y*in1.y/4+in2.x/4+1,0),0);
-			sphs3 = texelFetch(Content,ivec2(id.y*in1.y/4+in2.x/4+2,0),0);
-			materialID.x= in2.z;
-
-			 if(id.x==/*texelFetch(ContentAbout,ivec2(0,0),0).w*/1)//если сфера
-			{
-				norm = sphN(sphs1.yzw,me,lookTo,leng.x);
-			}
-			else if(id.x==/*texelFetch(ContentAbout,ivec2(2,0),0).w*/2)//если коробка
-			{
-				vec3 me2 = me-sphs3.yzw;
-				me2=rotate(me2,sphs1.xy,sphs1.zw,sphs2.xy);
-				vec3 lookTo2=rotate(lookTo,sphs1.xy,sphs1.zw,sphs2.xy);
-				isBoxIntersectN(me2,lookTo2,vec3(sphs2.zw,sphs3.x),norm);
-				norm = unrotate(norm,sphs1.xy,sphs1.zw,sphs2.xy);
-
-			}
-			else if(id.x==/*texelFetch(ContentAbout,ivec2(4,0),0).w*/3)//если треугольник
-			{
-				norm = cross(vec3(sphs1.w,sphs2.xy)-sphs1.xyz,vec3(sphs2.zw,sphs3.x)-sphs1.xyz);
-				norm = normalize(norm);
-				if(dot(norm,lookTo)>0)norm = norm * (-1);
-			}
+			norm = sphN(sphs1.yzw,me,lookTo,leng.x);
 		}
+		else if(id.x==/*texelFetch(ContentAbout,ivec2(2,0),0).w*/2)//если коробка
+		{
+			vec3 me2 = me-sphs3.yzw;
+			me2=rotate(me2,sphs1.xy,sphs1.zw,sphs2.xy);
+			vec3 lookTo2=rotate(lookTo,sphs1.xy,sphs1.zw,sphs2.xy);
+			isBoxIntersectN(me2,lookTo2,vec3(sphs2.zw,sphs3.x),norm);
+			norm = unrotate(norm,sphs1.xy,sphs1.zw,sphs2.xy);
+		}
+		else if(id.x==/*texelFetch(ContentAbout,ivec2(4,0),0).w*/3)//если треугольник
+		{
+			norm = cross(vec3(sphs1.w,sphs2.xy)-sphs1.xyz,vec3(sphs2.zw,sphs3.x)-sphs1.xyz);
+			norm = normalize(norm);
+			if(dot(norm,lookTo)>0)norm = norm * (-1);
+		}
+
 		//break;//60 fps
 		//поиск значения искомого материала
 		{
@@ -472,25 +470,58 @@ bool RTX(in vec3 me,in vec3 lookTo,  out vec4 color)
 		//materialID сейчас представлят указатель* на описание класса в ContentAbout и номер в этом классе в текстуре content
 		vec4 color_t;
 		bool isReflect = true;
-		if(texelFetch(ContentAbout,ivec2(materialID.x,0),0).w==100)
 		{
 			ivec4 in_T = texelFetch(ContentAbout,ivec2(materialID.x,0),0);
 			ivec4 in_T2 = texelFetch(ContentAbout,ivec2(materialID.x+1,0),0);
 			vec4 data1 = texelFetch(Content,ivec2(   (in_T2.x+materialID.y*in_T.y)/4   ,0),0);
 			vec4 data2 = texelFetch(Content,ivec2(   (in_T2.x+materialID.y*in_T.y)/4+1   ,0),0);
-			color_t = vec4(   normalize(data1.xyz),1   );
-			norm = RVwDPX(norm,data2.x,data2.y);
-		}
-		else if(texelFetch(ContentAbout,ivec2(materialID.x,0),0).w==101)
-		{
-			isReflect = false;
-			ivec4 in_T = texelFetch(ContentAbout,ivec2(materialID.x,0),0);
-			ivec4 in_T2 = texelFetch(ContentAbout,ivec2(materialID.x+1,0),0);
-			vec4 data1 = texelFetch(Content,ivec2(   (in_T2.x+materialID.y*in_T.y)/4   ,0),0);
 
+			if(in_T.w==100)
+			{
+				color_t = vec4(   normalize(data1.xyz),1   );
+				norm = normalize(RVwDPX(norm,data2.x,data2.y));
+				
+			}
+			else if(in_T.w==101)
+			{
+				isReflect = false;
+				vec2 pointInTex;
+				vec3 vecInBasis;
+				me = me + lookTo*leng.x;
+
+				if(id.x==1)
+				{
+					pointInTex = SphToTex(sphs1.yzw,me,sphs2.xyz,vec3(sphs2.w,sphs3.xy));
+					vecInBasis = VtS(lookTo,sphs2.xyz,vec3(sphs2.w,sphs3.xy),norm);
+				}
+				else if(id.x==3)
+				{
+					pointInTex = triToTex2(sphs1.xyz,vec3(sphs1.w,sphs2.xy),vec3(sphs2.zw,sphs3.x),me);
+					vecInBasis = VtT(lookTo,vec3(sphs1.w,sphs2.xy)-sphs1.xyz,norm);
+				}
+				ivec4 in1q = texelFetch(ContentAbout,ivec2((data1.x-1)*2,0),0);
+				ivec4 in2q = texelFetch(ContentAbout,ivec2((data1.x-1)*2+1,0),0);
+				vec4 dd1,dd2,dd3;
+				dd1 = texelFetch(Content,ivec2(data1.x*in1q.y/4+in2q.x/4,0),0);
+				dd2 = texelFetch(Content,ivec2(data1.x*in1q.y/4+in2q.x/4+1,0),0);
+				dd3 = texelFetch(Content,ivec2(data1.x*in1q.y/4+in2q.x/4+2,0),0);
+				if(data1.x==1)
+				{
+					me = textoPSph(dd1.yzw,dd1.x,dd2.xyz,vec3(dd2.w,dd3.xy),pointInTex);
+					lookTo = StV(vecInBasis,dd2.xyz,vec3(dd2.w,dd3.xy),sphN(dd1.yzw,me,lookTo,0));
+				}
+				if(data1.x==3)
+				{
+					norm = cross(vec3(dd1.w,dd2.xy)-dd1.xyz,vec3(dd2.zw,dd3.x)-dd1.xyz);
+					norm = normalize(norm);
+					me = texToPTri2(dd1.xyz,vec3(dd1.w,dd2.xy),vec3(dd2.zw,dd3.x),pointInTex);
+					lookTo = TtV(vecInBasis,vec3(dd1.w,dd2.xy)-dd1.xyz,norm);
+				}
 
 			 
-		}
+			}
+		}		isReflect=false;
+				color = vec4(norm+0.1,1);
 		if(isReflect)
 		{
 			{
@@ -500,7 +531,6 @@ bool RTX(in vec3 me,in vec3 lookTo,  out vec4 color)
 			{
 				//отражение
 				me = me + lookTo*leng.x;
-				vec3 dontlookto = lookTo;
 				lookTo = reflect(lookTo,norm);
 				//освещение
 				//мы смотрим на сколько вектор нормали конечный отличается от угла падения света и умножаем свет на это число

@@ -34,22 +34,22 @@ public:
 		radius{ radius1 }, x{ x1 }, y{ y1 }, z{ z1 }
 	{
 	}
-	Sphere* setBasis(float v1x=1, float v1y=0, float v1z=0, float v2x=0, float v2y=1, float v2z=0)
+	Sphere* setBasis(float v1x = 1, float v1y = 0, float v1z = 0, float v2x = 0, float v2y = 1, float v2z = 0)
 	{
 		b.v1 = Basis::Vec{ v1x,v1y,v1z };
 		b.v2 = Basis::Vec{ v2x,v2y,v2z };
 		return this;
 	}
 	std::array<float, size> getArr()
-	{
-		return std::array<float, size>{radius, x, y, z, b.v1.x,b.v1.y,b.v1.z,b.v2.x,b.v2.y,b.v2.z};
+	{								/* 0              0 1                            1  2                           2*/
+		return std::array<float, size>{radius, x, y, z, b.v1.x, b.v1.y, b.v1.z, b.v2.x, b.v2.y, b.v2.z, b.v3.x, b.v3.y};
 	}
 	void setMat(long long ID, int cl)
 	{
 		materialID = ID;
 		materialClass = cl;
 	}
-	std::array<long,2> getMat()
+	std::array<long, 2> getMat()
 	{
 		return std::array<long, 2>{materialClass, (long)materialID};
 	}

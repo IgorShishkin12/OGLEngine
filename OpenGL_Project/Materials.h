@@ -11,7 +11,7 @@ public:
 	{
 
 	}
-	std::array<float, 8> getData()
+	auto getData()
 	{
 		return std::array<float, 8> {r, g, b, 0, reflectability, maxTanDiff, 0, 0};
 	}
@@ -29,7 +29,7 @@ public:
 
 	}
 
-	std::array<float, 8> getData()
+	auto getData()
 	{
 		return std::array<float, 8> {r, g, b, 0, brc1, brc2, brc3, 0};
 	}
@@ -44,12 +44,23 @@ public:
 
 	}
 
-	std::array<float, 4> getData()
+	auto getData()
 	{
-		return std::array<float, 4> {0,0,0,0};
+		return std::array<float, 4> {float(texid),0,0,0};
 	}
-	std::array<long, 2> getDataAb()
+};
+class Portal
+{
+	long targetObj;//aka functionNumber
+	long id;//aka number in list of ...
+public:
+	Portal(long target,long id1) :
+		targetObj{ target },id{id1}
 	{
-		return std::array<long, 2> {texid,0};
+
+	}
+	auto getData()
+	{
+		return std::array<float, 4> {float(targetObj), float(id) , 0, 0};
 	}
 };

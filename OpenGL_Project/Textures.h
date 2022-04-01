@@ -172,7 +172,7 @@ class Textures
 
 			}
 		}
-		array <long long, 8> compress()
+		auto compress()
 		{
 			return array<long long, 8>{dataSize, cellSize, cellCount, funcionNumber, dataBegin, dataEnd,materialIDBegin,0};
 		}
@@ -202,8 +202,6 @@ public:
 		texes.setloc("AboutMaterial");
 		aboutMatid = texes.createTex<GL_INT, GL_RGBA_INTEGER>(GL_TEXTURE_2D, GL_RGBA32I, ceil(compressedMaterialAbout.size() / 4.0), 1);
 		//texes.insDataTex<float, 2>(1, &compressedDataAbout[0], compressedDataAbout.size(), 1);
-
-
 	}
 
 	long addData( long cellSize1,long cellCount1, long functionNumber1,float* data1)
@@ -241,6 +239,7 @@ public:
 		maxTexSizeY = max(maxTexSizeY, texData.back().width);
 		return texData.size() - 1;
 	}
+
 	void compressTex()
 	{
 		vector<float> vec22;
@@ -253,6 +252,7 @@ public:
 				
 		}
 	}
+
 	void compressData(bool isIns= 1)
 	{
 		compressedData.clear();
@@ -276,10 +276,12 @@ public:
 			texes.insDataTex<long, 2, GL_INT, GL_RGBA_INTEGER>(aboutMatid, &compressedMaterialAbout[0], ceil(compressedMaterialAbout.size()/ 4.0), 1);
 		}
 	}
+
 	void sendData();
 	void reCompress()
 	{
 	}
+
 	void send()
 	{
 		texes.sendTex(contentid);
