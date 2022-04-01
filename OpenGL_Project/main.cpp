@@ -163,8 +163,8 @@ int main()
 	vector<Material1> mats;
 	{
 		//mats.reserve(2);
-		mats.push_back(Material1{ 0,0,200,1,0.0 });
-		mats.push_back(Material1{ 0,1,0,99.0f,1 });
+		mats.push_back(Material1{ 0,0,200,50,0.1 });
+		mats.push_back(Material1{ 0,1,0 });
 		mats.push_back(Material1{ 1,0,0 });
 		mats.push_back(Material1{ 1,2,3 });
 	}

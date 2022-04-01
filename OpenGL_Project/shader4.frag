@@ -21,7 +21,7 @@ const float epsilon = 1e-6;
 const float epsilon2 = 1e-3;
 const float pi = 3.1415926535;
 out vec4 out_gl_FragColor;
-float seed = 13746.785*gl_FragCoord.y/(gl_FragCoord.x+time/1e8)+sin(length(me1))*10+sin(length(mouse.xz))*10/*+time*/;
+float seed = 13746.785*(gl_FragCoord.y+float(int(time+123456.0)%1000))/(gl_FragCoord.x+(time)/1e10)+sin(length(me1))*9.87456+sin(length(mouse.xz))*12.3456/*+time*/;
 
 
 float random(in float use)
@@ -370,7 +370,7 @@ bool RTX(in vec3 me,in vec3 lookTo,  out vec4 color)
 {
 	float lengsum = 0;
 		//int qwerte = 0;
-	for(int i = 0;i<1;++i)
+	for(int i = 0;i<3;++i)
 	{
 		ivec2 id,id_T;//в переменной id должно находится первым символом номер искомой функции, вторым-последовательный номер в наборе из этих функций где первая-0
 		vec2 leng=vec2(inf,inf);
@@ -520,8 +520,8 @@ bool RTX(in vec3 me,in vec3 lookTo,  out vec4 color)
 
 			 
 			}
-		}		isReflect=false;
-				color = vec4(norm+0.1,1);
+		}		//isReflect=false;
+				//color = vec4(norm+0.1,1);
 		if(isReflect)
 		{
 			{
