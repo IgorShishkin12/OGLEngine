@@ -33,6 +33,8 @@ public:
 	Sphere(float radius1 = 1, float x1 = 0, float y1 = 0, float z1 = 0) :
 		radius{ radius1 }, x{ x1 }, y{ y1 }, z{ z1 }
 	{
+		b.v1 = Basis::Vec{1,0,0 };
+		b.v2 = Basis::Vec{ 0,1,0 };
 	}
 	Sphere* setBasis(float v1x = 1, float v1y = 0, float v1z = 0, float v2x = 0, float v2y = 1, float v2z = 0)
 	{

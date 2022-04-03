@@ -314,7 +314,7 @@ vec2 triToTex2(vec3 v0,vec3 v1,vec3 v2,vec3 p)
 	vec2 p2 = vec2(dot(x,p),dot(y,p));
 	vec3 barycentric/* u,v,1*/ = cross(vec3(v11.x,v22.x,p2.x),vec3(v11.y,v22.y,p2.y));
 	barycentric = barycentric/barycentric.z;
-	barycentric = barycentric*(barycentric.x+barycentric.y)/max(barycentric.x,barycentric.y);//превращаем треугольник в квадрат путем растяжения 
+	barycentric = barycentric*(barycentric.x+barycentric.y)/min(barycentric.x,barycentric.y);//превращаем треугольник в квадрат путем растяжения 
 	return barycentric.xy;
 
 }
@@ -520,6 +520,23 @@ bool RTX(in vec3 me,in vec3 lookTo,  out vec4 color)
 				}
 				me-=lookTo;
 				continue;
+			}
+			else if (in_T.w ==102)
+			{
+				isReflect = false;
+				vec2 pointInTex;
+				vec3 vecInBasis;
+				me = me + lookTo*leng.x;
+
+				if(id.x==1)
+				{
+					pointInTex = SphToTex(sphs1.yzw,me,sphs2.xyz,vec3(sphs2.w,sphs3.xy));
+				}
+				else if(id.x==3)
+				{
+					pointInTex = triToTex2(sphs1.xyz,vec3(sphs1.w,sphs2.xy),vec3(sphs2.zw,sphs3.x),me);
+				}
+								color = texture(texture_array,vec3(pointInTex,1));
 			}
 		}
 		if(isReflect)

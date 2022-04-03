@@ -127,8 +127,8 @@ int main()
 		{
 			//float radius=1, float x=0, float y=0, float z=0, float r=0, float g=0, float b=0, float a=1
 
-			vec.push_back(Sphere{ 100,14,100,39 });
-			vec[vec.size() - 1].setMat(1,100);/************************/
+			vec.push_back(Sphere{ 100,14,100,-390 });
+			vec[vec.size() - 1].setMat(0,102);/************************/
 			vec.push_back(Sphere{ 50,14,-100,-39 });
 			vec[vec.size() - 1].setMat(1, 100);
 			vec.push_back(Sphere{ 10,14,-100,200 });
@@ -149,13 +149,13 @@ int main()
 			vec2[vec2.size() - 1].setMat(1, 100);
 			vec2.push_back(Box{ 7,80,90,10,7,50,1 / 9,1 / 1,1 / 8 });
 			vec2[vec2.size() - 1].setMat(0, 100);
-			vec2.push_back(Box{ 1,2000,2000,0,0,0,0,0,0 });
-			vec2[vec2.size() - 1].setMat(3, 100);
+			//vec2.push_back(Box{ 1,2000,2000,0,0,0,0,0,0 });
+			//vec2[vec2.size() - 1].setMat(3, 100);
 		}
 		vector<Triangle> vec3;
 		{
 			vec3.push_back(Triangle{ -1000,1000,-1000, -1000,1000,1000,  -1000,-1000,1000 });
-			vec3[vec3.size() - 1].setMat(2, 100);
+			vec3[vec3.size() - 1].setMat(2, 102);
 			vec3.push_back(Triangle{ 1000,1000,-1000, 1000,1000,1000,  1000,-1000,1000 });
 			vec3[vec3.size() - 1].setMat(1, 100);
 			//vec3.push_back(Triangle{ 100,100,-100, 1770,1245,1450,  700,-870,3500 });
@@ -180,8 +180,8 @@ int main()
 		vector<Material1> mats;
 		{
 			//mats.reserve(2);
-			mats.push_back(Material1{ 0,0,200,200,0.1 });
-			mats.push_back(Material1{ 0,1,0,10,0.5});
+			mats.push_back(Material1{ 0,0,200 });
+			mats.push_back(Material1{ 0,1,0});
 			mats.push_back(Material1{ 1,0,0 });
 			mats.push_back(Material1{ 1,2,3 });
 		}
@@ -251,7 +251,7 @@ int main()
 				const auto& q = j.getData();
 				for (auto z : q)hans.push_back(z);
 			}
-			tx.addData(4, mats.size(), 101, &hans[0]);
+			tx.addData(4, mats.size(), 102, &hans[0]);
 			tx.addMaterials(matBeg, &hans2[0], &hans3[0]);//случайное наполнение
 		}
 		tx.addTex(memDatah, memDataw,4, mtdf);
