@@ -1,6 +1,8 @@
 ﻿#include <glad/glad.h>
 #include <GLFW/glfw3.h>
 
+#define STB_IMAGE_IMPLEMENTATION
+#include "C:\Users\shishkin_i\source\repos\OpenGL_Project\OpenGL_Project\stb_image.h"
 #include <iostream>
 #include<iomanip>
 //#define STB_IMAGE_IMPLEMENTATION //<-- хз костыль какойто заводской
@@ -19,8 +21,6 @@
 #include "Polygon.h"
 #include<array>
 #include <C:\Users\shishkin_i\Downloads\Pump_Impellar (1).cpp>
-#define STB_IMAGE_IMPLEMENTATION
-#include "C:\Users\shishkin_i\source\repos\OpenGL_Project\OpenGL_Project\stb_image.h"
 void framebuffer_size_callback(GLFWwindow* window, int width, int height);
 void processInput(GLFWwindow* window);
 bool isMove(GLFWwindow* window, float* arr);
@@ -39,13 +39,15 @@ int main()
 	glfwWindowHint(GLFW_OPENGL_PROFILE, GLFW_OPENGL_CORE_PROFILE);
 	int memDatah, memDataw, memDatanr;
 	string memDataP = "C:/Users/shishkin_i/Desktop/wqwqwqw.jpg";
-	unsigned char* memTexData = stbi_load(memDataP.c_str(), &memDataw, &memDatah, &memDatanr, 3);
-	float* mtdf = new float[memDatah * memDataw * 4];
+	unsigned char* memTexData = stbi_load(memDataP.c_str(), &memDataw, &memDatah, &memDatanr, 4);
+	float* mtdf = new float[memDatah * memDataw * 16];
 	for (long long i = 0; i < memDatah * memDataw; ++i)
 	{
-		mtdf[i * 4] = memTexData[i * 3]/255.0;
-		mtdf[i * 4 + 1] = memTexData[i * 3 + 1]/255.0;
-		mtdf[i * 4 + 2] = memTexData[i * 3 + 2]/255.0;
+
+		mtdf[i * 4] = memTexData[i * 4]/255.0;
+		mtdf[i * 4 + 1] = memTexData[i * 4 + 1]/255.0;
+		mtdf[i * 4 + 2] = memTexData[i * 4 + 2]/255.0;
+		//memTexData[i * 4] = 12;
 		mtdf[i * 4 + 3] = 1.0;
 	}
 
@@ -252,11 +254,11 @@ int main()
 			tx.addData(4, mats.size(), 101, &hans[0]);
 			tx.addMaterials(matBeg, &hans2[0], &hans3[0]);//случайное наполнение
 		}
-		tx.addTex(memDatah, memDataw, mtdf);
+		tx.addTex(memDatah, memDataw,4, mtdf);
 		tx.compressData(0);
 		tx.createTexes();
 		tx.compressData();
-		//tx.compressTex();
+		tx.compressTex();
 	}
 	while (!glfwWindowShouldClose(window))
 	{

@@ -50,6 +50,8 @@ public:
 		glActiveTexture(GL_TEXTURE0 + id);
 		glGenTextures(1, &(idArr[id]));
 		glBindTexture(t1, idArr[id]);
+	/*	int a, b, c;
+		float d;*/
 		glTexParameteri(t1, GL_TEXTURE_MIN_FILTER, GL_NEAREST);//см ниже
 		glTexParameteri(t1, GL_TEXTURE_MAG_FILTER, GL_NEAREST);//пиксель на всей области одного цвета
 		if (t1 == GL_TEXTURE_1D || t1 == GL_TEXTURE_BUFFER)
@@ -77,6 +79,17 @@ public:
 	//пример:
 	//insDataTex<2, float>(targetid, data, sizex, sizey, offsetx, offsety);
 	// можно было бы сделать элипсис, но там не понятно кончились ли числа или мы их не ввели так как они 0
+	// void glTexSubImage3D(	GLenum target,
+							//	GLint level,
+							//	GLint xoffset,
+							//	GLint yoffset,
+							//	GLint zoffset,
+							//	GLsizei width,
+							//	GLsizei height,
+							//	GLsizei depth,
+							//	GLenum format,
+							//	GLenum type,
+							//	const void* pixels);
 	// 
 	template<class cl1,int dim = 1, GLuint type = GL_FLOAT, GLuint format = GL_RGBA>
 	void insDataTex(int id2, cl1* dataIn, int in1 = 0, int in2 = 0, int in3 = 0, int in4 = 0, int in5 = 0, int in6 = 0 )
@@ -135,6 +148,7 @@ class Textures
 	{
 		int height;
 		int width;
+		int channels;
 		vector<float>data;
 	};
 	vector<tex> texData;
@@ -225,13 +239,14 @@ public:
 		vecDataAbout[id].setMaterials(matIDBeg, matID, classID);
 		
 	}
-	int addTex(int height1, int width1, float* data1)
+	int addTex(int height1, int width1,int channels, float* data1)
 	{
 		texData.resize(texData.size() + 1);
 		texData.back().height = height1;
 		texData.back().width = width1;
-		texData.back().data.reserve(height1 * width1);
-		for (long i = 0; i < height1 * width1; ++i)
+		texData.back().channels = channels;
+		texData.back().data.reserve(height1 * width1*channels);
+		for (long long i = 0; i < height1 * width1*channels; ++i)
 		{
 			texData.back().data.push_back(data1[i]);
 		}
