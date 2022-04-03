@@ -53,11 +53,11 @@ public:
 		glTexParameteri(t1, GL_TEXTURE_MIN_FILTER, GL_NEAREST);//см ниже
 		glTexParameteri(t1, GL_TEXTURE_MAG_FILTER, GL_NEAREST);//пиксель на всей области одного цвета
 		if (t1 == GL_TEXTURE_1D || t1 == GL_TEXTURE_BUFFER)
-			glTexImage1D(t1, 0, internalformat, width, 0, format, type, idArr);//заполняется мусором
+			glTexImage1D(t1, 0, internalformat, width, 0, format, type, 0);//заполняется мусором
 		else if (t1 == GL_TEXTURE_2D || t1 == GL_TEXTURE_1D_ARRAY || t1 == GL_TEXTURE_RECTANGLE)
 			glTexImage2D(t1, 0, internalformat, width, height, 0, format, type, 0);//заполняется мусором
 		else if (t1 == GL_TEXTURE_3D || t1 == GL_TEXTURE_2D_ARRAY)
-			glTexImage3D(t1, 0, internalformat, width,height,depth, 0, format, type, idArr);//заполняется мусором
+			glTexImage3D(t1, 0, internalformat, width,height,depth, 0, format, type, 0);//заполняется мусором
 		glUniform1i(locArr[id], id);
 		targetArr[id] = t1;
 		isFree[id] = 0;
@@ -196,7 +196,7 @@ public:
 		//texes.insDataTex<float, 2>(1, &compressedDataAbout[0], compressedDataAbout.size(), 1);
 
 		texes.setloc("texture_array");
-		texesid=texes.createTex(GL_TEXTURE_2D_ARRAY, GL_RGBA8, maxTexSizeX, maxTexSizeY, texData.size()/4);
+		texesid=texes.createTex(GL_TEXTURE_2D_ARRAY, GL_RGBA8, maxTexSizeX, maxTexSizeY, texData.size());
 		//texes.insDataTex<float, 3>(2, &texData[0][0], maxTexSizeX,maxTexSizeY,texData.size());
 
 		texes.setloc("AboutMaterial");
@@ -236,13 +236,13 @@ public:
 			texData.back().data.push_back(data1[i]);
 		}
 		maxTexSizeX = max(maxTexSizeX, texData.back().width);
-		maxTexSizeY = max(maxTexSizeY, texData.back().width);
+		maxTexSizeY = max(maxTexSizeY, texData.back().height);
 		return texData.size() - 1;
 	}
 
 	void compressTex()
 	{
-		vector<float> vec22;
+		//vector<float> vec22;
 		long j = 0;
 		
 		for (auto& i : texData)

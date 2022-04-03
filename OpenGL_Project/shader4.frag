@@ -370,7 +370,7 @@ bool RTX(in vec3 me,in vec3 lookTo,  out vec4 color)
 {
 	float lengsum = 0;
 		//int qwerte = 0;
-	for(int i = 0;i<3;++i)
+	for(int i = 0;i<2;++i)
 	{
 		ivec2 id,id_T;//в переменной id должно находится первым символом номер искомой функции, вторым-последовательный номер в наборе из этих функций где первая-0
 		vec2 leng=vec2(inf,inf);
@@ -423,7 +423,7 @@ bool RTX(in vec3 me,in vec3 lookTo,  out vec4 color)
 		sphs1 = texelFetch(Content,ivec2(id.y*in1.y/4+in2.x/4,0),0);
 		sphs2 = texelFetch(Content,ivec2(id.y*in1.y/4+in2.x/4+1,0),0);
 		sphs3 = texelFetch(Content,ivec2(id.y*in1.y/4+in2.x/4+2,0),0);
-		materialID.x= in2.z;
+		materialID.x= in2.z;//matID Begin
 		 if(id.x==/*texelFetch(ContentAbout,ivec2(0,0),0).w*/1)//если сфера
 		{
 			norm = sphN(sphs1.yzw,me,lookTo,leng.x);
@@ -457,18 +457,19 @@ bool RTX(in vec3 me,in vec3 lookTo,  out vec4 color)
 		//break;//60 fps
 		//вытаскивание номера в последовательности по номеру функции
 		{
-			for(int i = textureSize(AboutMaterial,0).x; i>=0;i-=2)
+			for(int i = textureSize(AboutMaterial,0).x+4; i>=0;i-=2)
 			{
 				if(texelFetch(ContentAbout,ivec2(i,0),0).w==materialID.x)
 				{
 					materialID.x=i;
+					break;
 				}
 			}
 
 		}
 		//break;//60fps
 		//materialID сейчас представлят указатель* на описание класса в ContentAbout и номер в этом классе в текстуре content
-		vec4 color_t;
+		vec4 color_t = vec4(1,2,3,4);
 		bool isReflect = true;
 		{
 			ivec4 in_T = texelFetch(ContentAbout,ivec2(materialID.x,0),0);
@@ -482,7 +483,7 @@ bool RTX(in vec3 me,in vec3 lookTo,  out vec4 color)
 				norm = normalize(RVwDPX(norm,data2.x,data2.y));
 				
 			}
-			else if(in_T.w==101)
+			else if(in_T.w==101) 
 			{
 				isReflect = false;
 				vec2 pointInTex;
@@ -517,11 +518,10 @@ bool RTX(in vec3 me,in vec3 lookTo,  out vec4 color)
 					me = texToPTri2(dd1.xyz,vec3(dd1.w,dd2.xy),vec3(dd2.zw,dd3.x),pointInTex);
 					lookTo = TtV(vecInBasis,vec3(dd1.w,dd2.xy)-dd1.xyz,norm);
 				}
-
-			 
+				me-=lookTo;
+				continue;
 			}
-		}		//isReflect=false;
-				//color = vec4(norm+0.1,1);
+		}
 		if(isReflect)
 		{
 			{

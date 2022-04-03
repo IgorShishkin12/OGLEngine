@@ -17,9 +17,10 @@
 #include"Textures.h"
 #include "Materials.h"
 #include "Polygon.h"
-//#include "stb_image.h"
 #include<array>
 #include <C:\Users\shishkin_i\Downloads\Pump_Impellar (1).cpp>
+#define STB_IMAGE_IMPLEMENTATION
+#include "C:\Users\shishkin_i\source\repos\OpenGL_Project\OpenGL_Project\stb_image.h"
 void framebuffer_size_callback(GLFWwindow* window, int width, int height);
 void processInput(GLFWwindow* window);
 bool isMove(GLFWwindow* window, float* arr);
@@ -36,7 +37,17 @@ int main()
 	glfwWindowHint(GLFW_CONTEXT_VERSION_MAJOR, 3);
 	glfwWindowHint(GLFW_CONTEXT_VERSION_MINOR, 3);
 	glfwWindowHint(GLFW_OPENGL_PROFILE, GLFW_OPENGL_CORE_PROFILE);
-
+	int memDatah, memDataw, memDatanr;
+	string memDataP = "C:/Users/shishkin_i/Desktop/wqwqwqw.jpg";
+	unsigned char* memTexData = stbi_load(memDataP.c_str(), &memDataw, &memDatah, &memDatanr, 3);
+	float* mtdf = new float[memDatah * memDataw * 4];
+	for (long long i = 0; i < memDatah * memDataw; ++i)
+	{
+		mtdf[i * 4] = memTexData[i * 3]/255.0;
+		mtdf[i * 4 + 1] = memTexData[i * 3 + 1]/255.0;
+		mtdf[i * 4 + 2] = memTexData[i * 3 + 2]/255.0;
+		mtdf[i * 4 + 3] = 1.0;
+	}
 
 	// glfw: создание окна
 	GLFWwindow* window = glfwCreateWindow(SCR_WIDTH, SCR_HEIGHT, "My Game", NULL, NULL);
@@ -107,125 +118,146 @@ int main()
 	std::array <float, 4> mice2{ 0,1,0,1 };
 	int ID_mice = glGetUniformLocation(ourShader.getID(), "mouse");
 	int time_GLSL = glGetUniformLocation(ourShader.getID(), "time");
-
-	constexpr int sizex = 8, sizey = 1;
-	vector<Sphere> vec;
-	{
-		//float radius=1, float x=0, float y=0, float z=0, float r=0, float g=0, float b=0, float a=1
-
-		vec.push_back(Sphere{ 100,14,100,39});
-		vec[vec.size() - 1].setMat(2, 100);
-		vec.push_back(Sphere{ 50,14,-100,-39});
-		vec[vec.size() - 1].setMat(1, 100);
-		vec.push_back(Sphere{ 10,14,-100,200});
-		vec[vec.size() - 1].setMat(1, 100);
-		vec.push_back(Sphere{ 45,-14,100,309 });/**/
-		vec[vec.size() - 1].setMat(1, 100);
-		vec.push_back(Sphere{ 45,1000,1000,1000 });/**/
-		vec[vec.size() - 1].setMat(1, 100);
-		vec.push_back(Sphere{ 45,1000,1000,-1000 });/**/
-		vec[vec.size() - 1].setMat(1, 100);
-		vec.push_back(Sphere{ 45,1000,-1000,1000 });/**/
-		vec[vec.size() - 1].setMat(1, 100);
-
-	}
-	vector<Box> vec2;//(float sizex=0, float sizey=0, float sizez=0, float x=0, float y=0, float z=0, float a1=0, float b1=0, float c1=0
-	{
-		vec2.push_back(Box{ 80,8,900,100, 18,27,1 / 1,1 / 1, 1 / 1 });
-		vec2[vec2.size() - 1].setMat(1, 100);
-		vec2.push_back(Box{ 7,80,90,10,7,50,1 / 9,1 / 1,1 / 8 });
-		vec2[vec2.size() - 1].setMat(0, 100);
-		vec2.push_back(Box{ 1,2000,2000,0,0,0,0,0,0});
-		vec2[vec2.size() - 1].setMat(3, 100);
-	}
-	vector<Triangle> vec3;
-	{
-		vec3.reserve(2);
-		vec3.push_back(Triangle{ -1000,1000,-1000, -1000,1000,1000,  -1000,-1000,1000 });
-		vec3.push_back(Triangle{ 1000,1000,-1000, 1000,1000,1000,  1000,-1000,1000 });
-		vec3[0].setMat(2, 100);
-		vec3[1].setMat(0, 100);
-		//for (long i = 0; i < 3420; ++i)
-		//{
-		//	long j = i * 9;
-		//	float* q = &vertexTriangleArray[j];
-		//	vec3.push_back(Triangle(q[0], q[1], q[2], q[3], q[4], q[5], q[6], q[7], q[8]));
-		//	vec3[vec3.size()-1].setMat(1, 100);
-		//}
-		//for (long i = 0; i < 3420; ++i)
-		//{
-		//	long j = i * 9;
-		//	float* q = &vertexTriangleArray[j];
-		//	vec3.push_back(Triangle(q[0], q[1], q[2], q[3], q[4], q[5], q[6], q[7], q[8]));
-		//	vec3[i].setMat(1, 100);
-		//}
-	}
-	vector<Material1> mats;
-	{
-		//mats.reserve(2);
-		mats.push_back(Material1{ 0,0,200,50,0.1 });
-		mats.push_back(Material1{ 0,1,0 });
-		mats.push_back(Material1{ 1,0,0 });
-		mats.push_back(Material1{ 1,2,3 });
-	}
 	Textures tx{ ourShader };
-	vector <float> hans;
-	vector <long> hans2;
-	vector <int> hans3;
-	long long matBeg = 0;
-	{
 
-		for (auto& j : vec)
-		{
-			const auto& q{ j.getArr() };
-			for (auto z : q)hans.push_back(z);
-			hans2.push_back(j.materialID);
-			hans3.push_back(j.materialClass);
-		}
-		tx.addData(Sphere::size, vec.size(), 1, &hans[0]);
-		tx.addMaterials(matBeg, &hans2[0], &hans3[0]);
-	}
 	{
-		hans.clear();
-		hans2.clear();
-		hans3.clear();
-		for (auto& j : vec2)
+		vector<Sphere> vec;
 		{
-			const auto& q = j.get();
-			for (auto z : q)hans.push_back(z);
-			hans2.push_back(j.materialID);
-			hans3.push_back(j.materialClass);
+			//float radius=1, float x=0, float y=0, float z=0, float r=0, float g=0, float b=0, float a=1
+
+			vec.push_back(Sphere{ 100,14,100,39 });
+			vec[vec.size() - 1].setMat(1,100);/************************/
+			vec.push_back(Sphere{ 50,14,-100,-39 });
+			vec[vec.size() - 1].setMat(1, 100);
+			vec.push_back(Sphere{ 10,14,-100,200 });
+			vec[vec.size() - 1].setMat(1, 100);
+			vec.push_back(Sphere{ 45,-14,100,309 });/**/
+			vec[vec.size() - 1].setMat(1, 100);
+			vec.push_back(Sphere{ 45,1000,1000,1000 });/**/
+			vec[vec.size() - 1].setMat(1, 100);
+			vec.push_back(Sphere{ 45,1000,1000,-1000 });/**/
+			vec[vec.size() - 1].setMat(1, 100);
+			vec.push_back(Sphere{ 45,1000,-1000,1000 });/**/
+			vec[vec.size() - 1].setMat(1, 100);
+
 		}
-		tx.addData(Box::size, vec2.size(), 2, &hans[0]);
-		tx.addMaterials(matBeg, &hans2[0], &hans3[0]);
-	}
-	{
-		hans.clear();
-		hans2.clear();
-		hans3.clear();
-		for (auto& j : vec3)
+		vector<Box> vec2;//(float sizex=0, float sizey=0, float sizez=0, float x=0, float y=0, float z=0, float a1=0, float b1=0, float c1=0
 		{
-			const auto& q = j.get();
-			for (auto z : q)hans.push_back(z);
-			hans2.push_back(j.materialID);
-			hans3.push_back(j.materialClass);
+			vec2.push_back(Box{ 80,8,900,100, 18,27,1 / 1,1 / 1, 1 / 1 });
+			vec2[vec2.size() - 1].setMat(1, 100);
+			vec2.push_back(Box{ 7,80,90,10,7,50,1 / 9,1 / 1,1 / 8 });
+			vec2[vec2.size() - 1].setMat(0, 100);
+			vec2.push_back(Box{ 1,2000,2000,0,0,0,0,0,0 });
+			vec2[vec2.size() - 1].setMat(3, 100);
 		}
-		tx.addData(Triangle::size, vec3.size(), 3, &hans[0]);
-		tx.addMaterials(matBeg, &hans2[0], &hans3[0]);
-	}
-	{
-		hans.clear();
-		for (auto& j : mats)
-		{ 
-			const auto& q = j.getData();
-			for (auto z : q)hans.push_back(z);
+		vector<Triangle> vec3;
+		{
+			vec3.push_back(Triangle{ -1000,1000,-1000, -1000,1000,1000,  -1000,-1000,1000 });
+			vec3[vec3.size() - 1].setMat(2, 100);
+			vec3.push_back(Triangle{ 1000,1000,-1000, 1000,1000,1000,  1000,-1000,1000 });
+			vec3[vec3.size() - 1].setMat(1, 100);
+			//vec3.push_back(Triangle{ 100,100,-100, 1770,1245,1450,  700,-870,3500 });
+			//vec3[vec3.size() - 1].setMat(2, 100);
+			//vec3.push_back(Triangle{ 100,100,-101, 1770,1245,1450,  700,-870,3500 });
+			//vec3[vec3.size() - 1].setMat(2, 100);
+			//for (long i = 0; i < 3420; ++i)
+			//{
+			//	long j = i * 9;
+			//	float* q = &vertexTriangleArray[j];
+			//	vec3.push_back(Triangle(q[0], q[1], q[2], q[3], q[4], q[5], q[6], q[7], q[8]));
+			//	vec3[vec3.size()-1].setMat(1, 100);
+			//}
+			//for (long i = 0; i < 3420; ++i)
+			//{
+			//	long j = i * 9;
+			//	float* q = &vertexTriangleArray[j];
+			//	vec3.push_back(Triangle(q[0], q[1], q[2], q[3], q[4], q[5], q[6], q[7], q[8]));
+			//	vec3[i].setMat(1, 100);
+			//}
 		}
-		tx.addData(8, mats.size(), 100, &hans[0]);
-		tx.addMaterials(matBeg, &hans2[0], &hans3[0]);//случайное наполнение
+		vector<Material1> mats;
+		{
+			//mats.reserve(2);
+			mats.push_back(Material1{ 0,0,200,200,0.1 });
+			mats.push_back(Material1{ 0,1,0,10,0.5});
+			mats.push_back(Material1{ 1,0,0 });
+			mats.push_back(Material1{ 1,2,3 });
+		}
+		vector<Portal> pots;
+		{
+			pots.push_back(Portal(0, 1));
+			pots.push_back(Portal(3, 1));
+		}
+		vector <float> hans;
+		vector <long> hans2;
+		vector <int> hans3;
+		long long matBeg = 0;
+		{
+
+			for (auto& j : vec)
+			{
+				const auto& q{ j.getArr() };
+				for (auto z : q)hans.push_back(z);
+				hans2.push_back(j.materialID);
+				hans3.push_back(j.materialClass);
+			}
+			tx.addData(Sphere::size, vec.size(), 1, &hans[0]);
+			tx.addMaterials(matBeg, &hans2[0], &hans3[0]);
+		}
+		{
+			hans.clear();
+			hans2.clear();
+			hans3.clear();
+			for (auto& j : vec2)
+			{
+				const auto& q = j.get();
+				for (auto z : q)hans.push_back(z);
+				hans2.push_back(j.materialID);
+				hans3.push_back(j.materialClass);
+			}
+			tx.addData(Box::size, vec2.size(), 2, &hans[0]);
+			tx.addMaterials(matBeg, &hans2[0], &hans3[0]);
+		}
+		{
+			hans.clear();
+			hans2.clear();
+			hans3.clear();
+			for (auto& j : vec3)
+			{
+				const auto& q = j.get();
+				for (auto z : q)hans.push_back(z);
+				hans2.push_back(j.materialID);
+				hans3.push_back(j.materialClass);
+			}
+			tx.addData(Triangle::size, vec3.size(), 3, &hans[0]);
+			tx.addMaterials(matBeg, &hans2[0], &hans3[0]);
+		}
+		{
+			hans.clear();
+			for (auto& j : mats)
+			{
+				const auto& q = j.getData();
+				for (auto z : q)hans.push_back(z);
+			}
+			tx.addData(8, mats.size(), 100, &hans[0]);
+			tx.addMaterials(matBeg, &hans2[0], &hans3[0]);//случайное наполнение
+		}
+		{
+			hans.clear();
+			for (auto& j : pots)
+			{
+				const auto& q = j.getData();
+				for (auto z : q)hans.push_back(z);
+			}
+			tx.addData(4, mats.size(), 101, &hans[0]);
+			tx.addMaterials(matBeg, &hans2[0], &hans3[0]);//случайное наполнение
+		}
+		tx.addTex(memDatah, memDataw, mtdf);
+		tx.compressData(0);
+		tx.createTexes();
+		tx.compressData();
+		//tx.compressTex();
 	}
-	tx.compressData(0);
-	tx.createTexes();
-	tx.compressData();
 	while (!glfwWindowShouldClose(window))
 	{
 		// Обработка ввода
