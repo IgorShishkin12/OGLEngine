@@ -312,15 +312,15 @@ vec2 triToTex2(vec3 v0,vec3 v1,vec3 v2,vec3 p)
 	vec2 v11 = vec2(dot(x,v1),0);
 	vec2 v22 = vec2(dot(x,v2),dot(y,v2));
 	vec2 p2 = vec2(dot(x,p),dot(y,p));
-	vec3 barycentric/* u,v,1*/ = cross(vec3(v11.x,v22.x,p2.x),vec3(v11.y,v22.y,p2.y));
+	vec3 barycentric/* u,v,1*/ = abs(cross(vec3(v11.x,v22.x,p2.x),vec3(v11.y,v22.y,p2.y)));
 	barycentric = barycentric/barycentric.z;
-	barycentric = barycentric*(barycentric.x+barycentric.y)/min(barycentric.x,barycentric.y);//превращаем треугольник в квадрат путем растяжения 
+	barycentric = barycentric*(barycentric.x+barycentric.y)/max(barycentric.x,barycentric.y);//превращаем треугольник в квадрат путем растяжения 
 	return barycentric.xy;
 
 }
 vec3 texToPTri2(vec3 v0,vec3 v1,vec3 v2,vec2 p)
 {
-	p = p*min(p.x,p.y);
+	p = p*max(p.x,p.y);
 	p/=(p.x+p.y);
 	return  v0+(v1-v0)*p.x+(v2-v0)*p.y;
 }
@@ -544,13 +544,13 @@ bool RTX(in vec3 me,in vec3 lookTo,  out vec4 color)
 					pointInTex = triToTex2(sphs1.xyz,vec3(sphs1.w,sphs2.xy),vec3(sphs2.zw,sphs3.x),me);
 				}
 				vec3 sizes =textureSize(texture_array,0);
-//				if(data1.x==1)
+//				if(data1.y==960)
 //				color =vec4(1,0,0,1);
 //				else
-				color =texture(texture_array,vec3(pointInTex,data1.x/sizes.z));
+				color =texture(texture_array,vec3(pointInTex/sizes.xy*data1.yz,data1.x/sizes.z));
 				
-				lengsum+=leng.x;
-				return true;
+//				lengsum+=leng.x;
+//				return true;
 
 			}
 		}
