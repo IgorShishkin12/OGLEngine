@@ -245,6 +245,15 @@ float arctan(float a,float b)
 	return ans;
 
 }
+float arctan2(float a,float b)
+{
+	float ans = atan(abs(a/b));
+	if(a>=0&&b<=0)ans =pi- ans;
+	else if(a<=0&&b<=0)ans = ans-pi;
+	else if(a<=0&&b>=0)ans = -ans;
+	return ans;
+
+}
 vec2 SphToTex(in vec3 sphO,in vec3 P,in vec3 x,in vec3 y)
 {
 	P = normalize(P-sphO);
@@ -254,6 +263,15 @@ vec2 SphToTex(in vec3 sphO,in vec3 P,in vec3 x,in vec3 y)
 	z1 = dot(normalize(cross(x,y)),P);
 	return vec2(arctan(z1,x1),arctan(z1,y1))/(2*pi);
 }
+vec2 SphToTex2(in vec3 sphO,in vec3 P,in vec3 x,in vec3 y)
+{
+	P = normalize(P-sphO);
+	float x1,y1,z1;
+	x1 = dot(normalize(x),P);
+	y1 = dot(normalize(y),P);
+	z1 = dot(normalize(cross(x,y)),P);
+	return vec2(arctan2(x1,z1),arctan2(y1,z1))/(2*pi)+vec2(0.5);
+}
 vec3 textoPSph(in vec3 sphO,in float radius,in vec3 x,in vec3 y,in vec2 TexC)
 {
 	float x1,y1,z1;
@@ -261,6 +279,15 @@ vec3 textoPSph(in vec3 sphO,in float radius,in vec3 x,in vec3 y,in vec2 TexC)
 	x1 = cos(TexC.x);
 	y1= cos(TexC.y);
 	z1= sin(TexC.x);
+	return sphO+normalize(x*x1+y*y1+cross(x,y)*z1)*radius*(1+epsilon);
+}
+vec3 textoPSph2(in vec3 sphO,in float radius,in vec3 x,in vec3 y,in vec2 TexC)
+{
+	float x1,y1,z1;
+	TexC=(TexC-0.5)*2*pi;
+	x1 = sin(TexC.x);
+	y1= sin(TexC.y);
+	z1= cos(TexC.x);
 	return sphO+normalize(x*x1+y*y1+cross(x,y)*z1)*radius*(1+epsilon);
 }
 vec3 VtS(vec3 v, vec3 bx/*basis x*/, vec3 by/*basis y*/,vec3 normal)//Vector to Sphere 
@@ -371,7 +398,9 @@ bool RTX(in vec3 me,in vec3 lookTo,  out vec4 color)
 	float lengsum = 0;
 	vec4 color_t = vec4(0);
 		//int qwerte = 0;
-	for(int i = 0;i<2;++i)
+		int max_iters = 3;
+		int max_iters_p = 3;
+	for(int i = 0,i_p=0;i<max_iters&&i_p<max_iters_p;++i)
 	{
 		ivec2 id,id_T;//в переменной id должно находится первым символом номер искомой функции, вторым-последовательный номер в наборе из этих функций где первая-0
 		vec2 leng=vec2(inf,inf);
@@ -510,7 +539,7 @@ bool RTX(in vec3 me,in vec3 lookTo,  out vec4 color)
 				dd3 = texelFetch(Content,ivec2(data1.x*in1q.y/4+in2q.x/4+2,0),0);
 				if(data1.x==1)
 				{
-					me = textoPSph(dd1.yzw,dd1.x,dd2.xyz,vec3(dd2.w,dd3.xy),pointInTex);
+					me = textoPSph2(dd1.yzw,dd1.x*1.001,dd2.xyz,vec3(dd2.w,dd3.xy),pointInTex);
 					norm = normalize(me-dd1.yzw);
 					lookTo = StV(vecInBasis,dd2.xyz,vec3(dd2.w,dd3.xy),norm);
 				}
@@ -519,12 +548,15 @@ bool RTX(in vec3 me,in vec3 lookTo,  out vec4 color)
 					norm = cross(vec3(dd1.w,dd2.xy)-dd1.xyz,vec3(dd2.zw,dd3.x)-dd1.xyz);
 					norm = normalize(norm);
 					me = texToPTri2(dd1.xyz,vec3(dd1.w,dd2.xy),vec3(dd2.zw,dd3.x),pointInTex);
-					lookTo = TtV(vecInBasis,vec3(dd1.w,dd2.xy)-dd1.xyz,norm);
+					lookTo = TtV(vecInBasis,vec3(dd1.w,dd2.xy)-dd1.xyz,norm)*sign(dot(lookTo,norm));
 				}
 				//me-=lookTo;
-//				color = vec4(normalize(lookTo),1);
-//				lengsum+=leng.x;
-//				continue;
+				//color = vec4(normalize(abs(lookTo)),1);
+				i--;
+				i_p++;
+				//lengsum+=leng.x;
+
+				//continue;
 			}
 			else if (in_T.w ==102)
 			{
@@ -552,7 +584,7 @@ bool RTX(in vec3 me,in vec3 lookTo,  out vec4 color)
 //				if(data1.y==960)
 //				color =vec4(1,0,0,1);
 //				else
-				color_t =texture(texture_array,vec3(pointInTex/sizes.xy*data1.yz,data1.x/sizes.z));
+				color_t =texture(texture_array,vec3(pointInTex/sizes.xy*data1.yz,data1.x-1));
 				
 //				lengsum+=leng.x;
 //				return true;
@@ -562,7 +594,7 @@ bool RTX(in vec3 me,in vec3 lookTo,  out vec4 color)
 		{
 			color = color+color_t*pow(0.5,i);
 			color_t = vec4(0);
-			color = vec4(normalize(abs(norm)),1);
+//			color = vec4(normalize(abs(norm)),1);
 //			lengsum+=leng.x;
 //			continue;
 		}

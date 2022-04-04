@@ -116,7 +116,7 @@ int main()
 			//float radius=1, float x=0, float y=0, float z=0, float r=0, float g=0, float b=0, float a=1
 
 			vec.push_back(Sphere{ 100,14,100,39 });
-			vec[vec.size() - 1].setMat(1,101);/************************/
+			vec[vec.size() - 1].setMat(2,102);/************************/
 			vec.push_back(Sphere{ 50,14,-100,-39 });
 			vec[vec.size() - 1].setMat(1, 100);
 			vec.push_back(Sphere{ 10,14,-100,200 });
@@ -137,8 +137,18 @@ int main()
 			vec2[vec2.size() - 1].setMat(1, 100);
 			vec2.push_back(Box{ 7,80,90,10,7,50,1 / 9,1 / 1,1 / 8 });
 			vec2[vec2.size() - 1].setMat(0, 100);
-			//vec2.push_back(Box{ 1,2000,2000,0,0,0,0,0,0 });
-			//vec2[vec2.size() - 1].setMat(3, 100);
+			vec2.push_back(Box{ 1,20000,20000,0,0,-30000,0,0,0 });
+			vec2[vec2.size() - 1].setMat(3, 100);
+			vec2.push_back(Box{ 1,20000,20000,0,0,30000,0,0,0 });
+			vec2[vec2.size() - 1].setMat(3, 100);
+			vec2.push_back(Box{ 20000,1,20000,0,30000,0,0,0,0 });
+			vec2[vec2.size() - 1].setMat(3, 100);
+			vec2.push_back(Box{ 20000,1,20000,0,-30000,0,0,0,0 });
+			vec2[vec2.size() - 1].setMat(3, 100);
+			vec2.push_back(Box{ 20000,20000,1,30000,0,0,0,0,0 });
+			vec2[vec2.size() - 1].setMat(3, 100);
+			vec2.push_back(Box{ 20000,20000,1,-30000,0,0,0,0,0 });
+			vec2[vec2.size() - 1].setMat(3, 100);
 		}
 		vector<Triangle> vec3;
 		{
@@ -197,6 +207,18 @@ int main()
 			{
 				int memDatah, memDataw, memDatanr;
 				unsigned char* memTexData = stbi_load("C:/Users/shishkin_i/Desktop/vy-prodaete.png", &memDataw, &memDatah, &memDatanr, 4);
+				float* mtdf = new float[long long(memDatah) * memDataw * 4];
+				for (long long i = 0; i < long long(memDatah) * memDataw; ++i)
+				{
+					mtdf[i * 4] = memTexData[i * 4] / 255.0f;
+					mtdf[i * 4 + 1] = memTexData[i * 4 + 1] / 255.0f;
+					mtdf[i * 4 + 2] = memTexData[i * 4 + 2] / 255.0f;
+					mtdf[i * 4 + 3] = 0.0f;
+				}
+				vecTs.push_back(hasTex{ long long(vecTs.size() + 1),memDataw,memDatah,mtdf });
+			} {
+				int memDatah, memDataw, memDatanr;
+				unsigned char* memTexData = stbi_load("C:/Users/shishkin_i/Desktop/raid.png", &memDataw, &memDatah, &memDatanr, 4);
 				float* mtdf = new float[long long(memDatah) * memDataw * 4];
 				for (long long i = 0; i < long long(memDatah) * memDataw; ++i)
 				{
