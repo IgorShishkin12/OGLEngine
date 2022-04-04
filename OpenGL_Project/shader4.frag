@@ -320,7 +320,8 @@ vec2 triToTex2(vec3 v0,vec3 v1,vec3 v2,vec3 p)
 }
 vec3 texToPTri2(vec3 v0,vec3 v1,vec3 v2,vec2 p)
 {
-	p = p*max(p.x,p.y)/(p.x+p.y);
+	p = p*min(p.x,p.y);
+	p/=(p.x+p.y);
 	return  v0+(v1-v0)*p.x+(v2-v0)*p.y;
 }
 vec3 VtT(vec3 v, vec3 v0v1,vec3 normal)
@@ -457,7 +458,7 @@ bool RTX(in vec3 me,in vec3 lookTo,  out vec4 color)
 		//break;//60 fps
 		//вытаскивание номера в последовательности по номеру функции
 		{
-			for(int i = textureSize(AboutMaterial,0).x+4; i>=0;i-=2)
+			for(int i = textureSize(ContentAbout,0).x+4; i>=0;i-=2)
 			{
 				if(texelFetch(ContentAbout,ivec2(i,0),0).w==materialID.x)
 				{
@@ -476,7 +477,8 @@ bool RTX(in vec3 me,in vec3 lookTo,  out vec4 color)
 			ivec4 in_T2 = texelFetch(ContentAbout,ivec2(materialID.x+1,0),0);
 			vec4 data1 = texelFetch(Content,ivec2(   (in_T2.x+materialID.y*in_T.y)/4   ,0),0);
 			vec4 data2 = texelFetch(Content,ivec2(   (in_T2.x+materialID.y*in_T.y)/4+1   ,0),0);
-
+			if(false)
+			color_t = vec4(3,0,0,1);
 			if(in_T.w==100)
 			{
 				color_t = vec4(   normalize(data1.xyz),1   );
@@ -519,6 +521,8 @@ bool RTX(in vec3 me,in vec3 lookTo,  out vec4 color)
 					lookTo = TtV(vecInBasis,vec3(dd1.w,dd2.xy)-dd1.xyz,norm);
 				}
 				me-=lookTo;
+				
+				lengsum+=leng.x;
 				continue;
 			}
 			else if (in_T.w ==102)
@@ -536,7 +540,7 @@ bool RTX(in vec3 me,in vec3 lookTo,  out vec4 color)
 				{
 					pointInTex = triToTex2(sphs1.xyz,vec3(sphs1.w,sphs2.xy),vec3(sphs2.zw,sphs3.x),me);
 				}
-								color = texture(texture_array,vec3(pointInTex,1));
+				color = texture(texture_array,vec3(pointInTex,1));
 			}
 		}
 		if(isReflect)
@@ -558,6 +562,7 @@ bool RTX(in vec3 me,in vec3 lookTo,  out vec4 color)
 			}
 		}
 		//break;//60fps
+		//color = vec4(normalize(lookTo),1);
 		lengsum+=leng.x;
 	}
 	return !(lengsum==0);
