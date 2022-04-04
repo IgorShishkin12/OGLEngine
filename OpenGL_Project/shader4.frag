@@ -261,7 +261,7 @@ vec3 textoPSph(in vec3 sphO,in float radius,in vec3 x,in vec3 y,in vec2 TexC)
 	x1 = cos(TexC.x);
 	y1= cos(TexC.y);
 	z1= sin(TexC.x);
-	return sphO+normalize(x*x1+y*y1+cross(x,y)*z1)*radius;
+	return sphO+normalize(x*x1+y*y1+cross(x,y)*z1)*radius*(1+epsilon);
 }
 vec3 VtS(vec3 v, vec3 bx/*basis x*/, vec3 by/*basis y*/,vec3 normal)//Vector to Sphere 
 {
@@ -320,8 +320,7 @@ vec2 triToTex2(vec3 v0,vec3 v1,vec3 v2,vec3 p)
 }
 vec3 texToPTri2(vec3 v0,vec3 v1,vec3 v2,vec2 p)
 {
-	p = p*max(p.x,p.y);
-	p/=(p.x+p.y);
+	p = p*max(p.x,p.y)/(p.x+p.y);
 	return  v0+(v1-v0)*p.x+(v2-v0)*p.y;
 }
 vec3 VtT(vec3 v, vec3 v0v1,vec3 normal)
@@ -370,6 +369,7 @@ vec3 RVwDPX(in vec3 v, in float x,in float maxTanDiff/*maxTanDiff for max parame
 bool RTX(in vec3 me,in vec3 lookTo,  out vec4 color)
 {
 	float lengsum = 0;
+	vec4 color_t = vec4(0);
 		//int qwerte = 0;
 	for(int i = 0;i<2;++i)
 	{
@@ -470,7 +470,7 @@ bool RTX(in vec3 me,in vec3 lookTo,  out vec4 color)
 		}
 		//break;//60fps
 		//materialID сейчас представлят указатель* на описание класса в ContentAbout и номер в этом классе в текстуре content
-		vec4 color_t = vec4(1,2,3,4);
+		//vec4 color_t = vec4(1,2,3,4);
 		bool isReflect = true;
 		{
 			ivec4 in_T = texelFetch(ContentAbout,ivec2(materialID.x,0),0);
@@ -511,7 +511,8 @@ bool RTX(in vec3 me,in vec3 lookTo,  out vec4 color)
 				if(data1.x==1)
 				{
 					me = textoPSph(dd1.yzw,dd1.x,dd2.xyz,vec3(dd2.w,dd3.xy),pointInTex);
-					lookTo = StV(vecInBasis,dd2.xyz,vec3(dd2.w,dd3.xy),sphN(dd1.yzw,me,lookTo,0));
+					norm = normalize(me-dd1.yzw);
+					lookTo = StV(vecInBasis,dd2.xyz,vec3(dd2.w,dd3.xy),norm);
 				}
 				if(data1.x==3)
 				{
@@ -520,10 +521,10 @@ bool RTX(in vec3 me,in vec3 lookTo,  out vec4 color)
 					me = texToPTri2(dd1.xyz,vec3(dd1.w,dd2.xy),vec3(dd2.zw,dd3.x),pointInTex);
 					lookTo = TtV(vecInBasis,vec3(dd1.w,dd2.xy)-dd1.xyz,norm);
 				}
-				me-=lookTo;
-				
-				lengsum+=leng.x;
-				continue;
+				//me-=lookTo;
+//				color = vec4(normalize(lookTo),1);
+//				lengsum+=leng.x;
+//				continue;
 			}
 			else if (in_T.w ==102)
 			{
@@ -538,27 +539,35 @@ bool RTX(in vec3 me,in vec3 lookTo,  out vec4 color)
 				if(id.x==1)
 				{
 					pointInTex = SphToTex(sphs1.yzw,me,sphs2.xyz,vec3(sphs2.w,sphs3.xy));
+//					vec3 terr = textoPSph(sphs1.yzw,sphs1.x,sphs2.xyz,vec3(sphs2.w,sphs3.xy),pointInTex);
+//					pointInTex = SphToTex(sphs1.yzw,terr,sphs2.xyz,vec3(sphs2.w,sphs3.xy));
 				}
 				else if(id.x==3)
 				{
 					pointInTex = triToTex2(sphs1.xyz,vec3(sphs1.w,sphs2.xy),vec3(sphs2.zw,sphs3.x),me);
+//					vec3 terr = texToPTri2(sphs1.xyz,vec3(sphs1.w,sphs2.xy),vec3(sphs2.zw,sphs3.x),pointInTex);
+//					pointInTex = triToTex2(sphs1.xyz,vec3(sphs1.w,sphs2.xy),vec3(sphs2.zw,sphs3.x),terr);
 				}
 				vec3 sizes =textureSize(texture_array,0);
 //				if(data1.y==960)
 //				color =vec4(1,0,0,1);
 //				else
-				color =texture(texture_array,vec3(pointInTex/sizes.xy*data1.yz,data1.x/sizes.z));
+				color_t =texture(texture_array,vec3(pointInTex/sizes.xy*data1.yz,data1.x/sizes.z));
 				
 //				lengsum+=leng.x;
 //				return true;
 
 			}
 		}
+		{
+			color = color+color_t*pow(0.5,i);
+			color_t = vec4(0);
+			color = vec4(normalize(abs(norm)),1);
+//			lengsum+=leng.x;
+//			continue;
+		}
 		if(isReflect)
 		{
-			{
-				color = color+color_t*pow(0.5,i);
-			}
 			//break;//60fps
 			{
 				//отражение
@@ -576,6 +585,7 @@ bool RTX(in vec3 me,in vec3 lookTo,  out vec4 color)
 		//color = vec4(normalize(lookTo),1);
 		lengsum+=leng.x;
 	}
+
 	return !(lengsum==0);
 
 }

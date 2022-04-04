@@ -143,11 +143,11 @@ int main()
 		vector<Triangle> vec3;
 		{
 			vec3.push_back(Triangle{ -1000,1000,-1000, -1000,1000,1000,  -1000,-1000,1000 });
-			vec3[vec3.size() - 1].setMat(1, 101);
+			vec3[vec3.size() - 1].setMat(0, 101);
 			vec3.push_back(Triangle{ 1000,1000,-1000, 1000,1000,1000,  1000,-1000,1000 });
 			vec3[vec3.size() - 1].setMat(0,102);
 			vec3.push_back(Triangle{ 100,100,-100, 1770,1245,1450,  700,-870,3500 });
-			//vec3[vec3.size() - 1].setMat(2, 100);
+			vec3[vec3.size() - 1].setMat(2, 100);
 			//vec3.push_back(Triangle{ 100,100,-101, 1770,1245,1450,  700,-870,3500 });
 			//vec3[vec3.size() - 1].setMat(2, 100);
 			//for (long i = 0; i < 3420; ++i)
@@ -175,8 +175,8 @@ int main()
 		}
 		vector<Portal> pots;
 		{
-			pots.push_back(Portal(0, 1));
-			pots.push_back(Portal(3, 1));
+			pots.push_back(Portal(1, 1));
+			pots.push_back(Portal(3, 2));
 		}
 		vector <hasTex> vecTs;
 		{
