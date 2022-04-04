@@ -157,7 +157,7 @@ class Textures
 		int height=0;
 		int width=0;
 		int channels=0;
-		vector<float>data{ 1,0 };
+		vector<float>data;
 	};
 	vector<tex> texData;
 	struct DataAbout

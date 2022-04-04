@@ -547,7 +547,11 @@ bool RTX(in vec3 me,in vec3 lookTo,  out vec4 color)
 //				if(data1.x==1)
 //				color =vec4(1,0,0,1);
 //				else
-				color = texture(texture_array,vec3(pointInTex,0.75));
+				color =texture(texture_array,vec3(pointInTex,data1.x/sizes.z));
+				
+				lengsum+=leng.x;
+				return true;
+
 			}
 		}
 		if(isReflect)

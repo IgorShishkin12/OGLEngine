@@ -145,7 +145,7 @@ int main()
 			vec3.push_back(Triangle{ -1000,1000,-1000, -1000,1000,1000,  -1000,-1000,1000 });
 			vec3[vec3.size() - 1].setMat(1, 101);
 			vec3.push_back(Triangle{ 1000,1000,-1000, 1000,1000,1000,  1000,-1000,1000 });
-			vec3[vec3.size() - 1].setMat(1,102);
+			vec3[vec3.size() - 1].setMat(0,102);
 			vec3.push_back(Triangle{ 100,100,-100, 1770,1245,1450,  700,-870,3500 });
 			//vec3[vec3.size() - 1].setMat(2, 100);
 			//vec3.push_back(Triangle{ 100,100,-101, 1770,1245,1450,  700,-870,3500 });
@@ -203,7 +203,7 @@ int main()
 					mtdf[i * 4] = memTexData[i * 4] / 255.0f;
 					mtdf[i * 4 + 1] = memTexData[i * 4 + 1] / 255.0f;
 					mtdf[i * 4 + 2] = memTexData[i * 4 + 2] / 255.0f;
-					mtdf[i * 4 + 3] = 1.0f;
+					mtdf[i * 4 + 3] = 0.0f;
 				}
 				vecTs.push_back(hasTex{ long long(vecTs.size() + 1),memDataw,memDatah,mtdf });
 			}
