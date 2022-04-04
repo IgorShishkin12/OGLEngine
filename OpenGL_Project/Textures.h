@@ -101,7 +101,12 @@ public:
 		else if (dim == 2)
 			glTexSubImage2D(targetArr[id2], 0, in3, in4, in1, in2, format, type, dataIn);
 		else if (dim == 3)
+		{
 			glTexSubImage3D(targetArr[id2], 0, in4,in5,in6,in1,in2,in3, format, type, dataIn);
+			//if(in3==2)
+			//testData<float, 40*20>(targetArr[id2]);
+
+		}
 	}
 	void sendTex(int id)
 	{
@@ -113,13 +118,16 @@ public:
 	void testData(GLenum target)
 	{
 
-		cl1 texelso[len]{ 0 };
+		float *texelso=new float[len];
 		glGetTexImage(target, 0, GL_RGBA, GL_FLOAT, texelso);
-
+		string ans;
 		for (int i = 0; i < len; ++i)
 		{
-			cout << texelso[i] << "\t";
+			if (i % 40 == 0)
+				ans+="\n";
+			ans+= to_string(texelso[i]) + "\t";
 		}
+		cout << ans<<"\n\nAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA\n\n";
 	}
 	//	//reference
 	//	//https://habr.com/ru/post/457380/
@@ -146,10 +154,10 @@ class Textures
 	long maxTexSizeX=0, maxTexSizeY=0;
 	struct tex
 	{
-		int height;
-		int width;
-		int channels;
-		vector<float>data;
+		int height=0;
+		int width=0;
+		int channels=0;
+		vector<float>data{ 1,0 };
 	};
 	vector<tex> texData;
 	struct DataAbout
@@ -239,14 +247,11 @@ public:
 		vecDataAbout[id].setMaterials(matIDBeg, matID, classID);
 		
 	}
-	int addTex(int height1, int width1,int channels, float* data1)
+	int addTex(int height1, int width1,int channels, const float* data1)
 	{
-		texData.resize(texData.size() + 1);
-		texData.back().height = height1;
-		texData.back().width = width1;
-		texData.back().channels = channels;
-		texData.back().data.reserve(height1 * width1*channels);
-		for (long long i = 0; i < height1 * width1*channels; ++i)
+		texData.push_back(tex{height1,width1,channels});
+		//texData.back().data.reserve(height1 * width1*channels);
+		for (long long i = 0; i < height1 * width1*channels*1LL; ++i)
 		{
 			texData.back().data.push_back(data1[i]);
 		}
@@ -263,7 +268,7 @@ public:
 		for (auto& i : texData)
 		{
 			j++;
-			texes.insDataTex<float, 3>(texesid, &i.data[0], i.width, i.height, j, 0, 0, j - 1);
+			texes.insDataTex<float, 3>(texesid, &i.data[0], i.width, i.height, 1, 0, 0, j - 1);
 				
 		}
 	}

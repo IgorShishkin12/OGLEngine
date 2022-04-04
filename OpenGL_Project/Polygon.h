@@ -11,8 +11,8 @@ class Triangle
 	Vert v1, v2, v3;
 public:
 	static const int size = 12;
-	long materialID;
-	int materialClass;
+	long materialID=0;
+	int materialClass=0;
 	Triangle(float v1x, float v1y, float v1z, float v2x, float v2y, float v2z, float v3x, float v3y, float v3z) :
 		v1{ v1x,v1y,v1z }, v2{ v2x,v2y,v2z }, v3{ v3x,v3y,v3z }
 	{

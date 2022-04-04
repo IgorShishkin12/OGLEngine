@@ -527,6 +527,9 @@ bool RTX(in vec3 me,in vec3 lookTo,  out vec4 color)
 			}
 			else if (in_T.w ==102)
 			{
+				ivec4 in_T = texelFetch(ContentAbout,ivec2(materialID.x,0),0);
+				ivec4 in_T2 = texelFetch(ContentAbout,ivec2(materialID.x+1,0),0);
+				vec4 data1 = texelFetch(Content,ivec2(   (in_T2.x+materialID.y*in_T.y)/4   ,0),0);
 				isReflect = false;
 				vec2 pointInTex;
 				vec3 vecInBasis;
@@ -540,7 +543,11 @@ bool RTX(in vec3 me,in vec3 lookTo,  out vec4 color)
 				{
 					pointInTex = triToTex2(sphs1.xyz,vec3(sphs1.w,sphs2.xy),vec3(sphs2.zw,sphs3.x),me);
 				}
-				color = texture(texture_array,vec3(pointInTex,1));
+				vec3 sizes =textureSize(texture_array,0);
+//				if(data1.x==1)
+//				color =vec4(1,0,0,1);
+//				else
+				color = texture(texture_array,vec3(pointInTex,0.75));
 			}
 		}
 		if(isReflect)

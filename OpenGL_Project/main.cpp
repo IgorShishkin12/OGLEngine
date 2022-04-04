@@ -37,19 +37,7 @@ int main()
 	glfwWindowHint(GLFW_CONTEXT_VERSION_MAJOR, 3);
 	glfwWindowHint(GLFW_CONTEXT_VERSION_MINOR, 3);
 	glfwWindowHint(GLFW_OPENGL_PROFILE, GLFW_OPENGL_CORE_PROFILE);
-	int memDatah, memDataw, memDatanr;
-	string memDataP = "C:/Users/shishkin_i/Desktop/wqwqwqw.jpg";
-	unsigned char* memTexData = stbi_load(memDataP.c_str(), &memDataw, &memDatah, &memDatanr, 4);
-	float* mtdf = new float[memDatah * memDataw * 16];
-	for (long long i = 0; i < memDatah * memDataw; ++i)
-	{
 
-		mtdf[i * 4] = memTexData[i * 4]/255.0;
-		mtdf[i * 4 + 1] = memTexData[i * 4 + 1]/255.0;
-		mtdf[i * 4 + 2] = memTexData[i * 4 + 2]/255.0;
-		//memTexData[i * 4] = 12;
-		mtdf[i * 4 + 3] = 1.0;
-	}
 
 	// glfw: создание окна
 	GLFWwindow* window = glfwCreateWindow(SCR_WIDTH, SCR_HEIGHT, "My Game", NULL, NULL);
@@ -149,17 +137,17 @@ int main()
 			vec2[vec2.size() - 1].setMat(1, 100);
 			vec2.push_back(Box{ 7,80,90,10,7,50,1 / 9,1 / 1,1 / 8 });
 			vec2[vec2.size() - 1].setMat(0, 100);
-			vec2.push_back(Box{ 1,2000,2000,0,0,0,0,0,0 });
-			vec2[vec2.size() - 1].setMat(3, 100);
+			//vec2.push_back(Box{ 1,2000,2000,0,0,0,0,0,0 });
+			//vec2[vec2.size() - 1].setMat(3, 100);
 		}
 		vector<Triangle> vec3;
 		{
 			vec3.push_back(Triangle{ -1000,1000,-1000, -1000,1000,1000,  -1000,-1000,1000 });
 			vec3[vec3.size() - 1].setMat(1, 101);
 			vec3.push_back(Triangle{ 1000,1000,-1000, 1000,1000,1000,  1000,-1000,1000 });
-			vec3[vec3.size() - 1].setMat(1, 100);
+			vec3[vec3.size() - 1].setMat(1,102);
 			vec3.push_back(Triangle{ 100,100,-100, 1770,1245,1450,  700,-870,3500 });
-			vec3[vec3.size() - 1].setMat(2, 100);
+			//vec3[vec3.size() - 1].setMat(2, 100);
 			//vec3.push_back(Triangle{ 100,100,-101, 1770,1245,1450,  700,-870,3500 });
 			//vec3[vec3.size() - 1].setMat(2, 100);
 			//for (long i = 0; i < 3420; ++i)
@@ -189,6 +177,36 @@ int main()
 		{
 			pots.push_back(Portal(0, 1));
 			pots.push_back(Portal(3, 1));
+		}
+		vector <hasTex> vecTs;
+		{
+			{
+				int memDatah, memDataw, memDatanr;
+				unsigned char* memTexData = stbi_load("C:/Users/shishkin_i/Desktop/catmem.jpg", &memDataw, &memDatah, &memDatanr, 4);
+				float* mtdf = new float[long long(memDatah) * memDataw * 4];
+				for (long long i = 0; i < long long(memDatah) * memDataw; ++i)
+				{
+					mtdf[i * 4] = memTexData[i * 4] / 255.0f;
+					mtdf[i * 4 + 1] = memTexData[i * 4 + 1] / 255.0f;
+					mtdf[i * 4 + 2] = memTexData[i * 4 + 2] / 255.0f;
+					mtdf[i * 4 + 3] = 1.0f;
+				}
+				//vecTs.push_back(hasTex{ long long(vecTs.size() + 1),memDataw,memDatah,mtdf });
+				vecTs.push_back(hasTex{ long long(vecTs.size() + 1),memDataw,memDatah,mtdf });
+			}
+			{
+				int memDatah, memDataw, memDatanr;
+				unsigned char* memTexData = stbi_load("C:/Users/shishkin_i/Desktop/vy-prodaete.png", &memDataw, &memDatah, &memDatanr, 4);
+				float* mtdf = new float[long long(memDatah) * memDataw * 4];
+				for (long long i = 0; i < long long(memDatah) * memDataw; ++i)
+				{
+					mtdf[i * 4] = memTexData[i * 4] / 255.0f;
+					mtdf[i * 4 + 1] = memTexData[i * 4 + 1] / 255.0f;
+					mtdf[i * 4 + 2] = memTexData[i * 4 + 2] / 255.0f;
+					mtdf[i * 4 + 3] = 1.0f;
+				}
+				vecTs.push_back(hasTex{ long long(vecTs.size() + 1),memDataw,memDatah,mtdf });
+			}
 		}
 		vector <float> hans;
 		vector <long> hans2;
@@ -251,10 +269,20 @@ int main()
 				const auto& q = j.getData();
 				for (auto z : q)hans.push_back(z);
 			}
-			tx.addData(4, mats.size(), 101, &hans[0]);
+			tx.addData(4, pots.size(), 101, &hans[0]);
 			tx.addMaterials(matBeg, &hans2[0], &hans3[0]);//случайное наполнение
 		}
-		tx.addTex(memDatah, memDataw,4, mtdf);
+		{
+			hans.clear();
+			for (auto& j :vecTs)
+			{
+				const auto& q = j.getData();
+				for (auto z : q)hans.push_back(z);
+				tx.addTex(j.y, j.x,4,	j.d());
+			}
+			tx.addData(4, vecTs.size(), 102, &hans[0]);
+			tx.addMaterials(matBeg, &hans2[0], &hans3[0]);//случайное наполнение
+		}
 		tx.compressData(0);
 		tx.createTexes();
 		tx.compressData();
